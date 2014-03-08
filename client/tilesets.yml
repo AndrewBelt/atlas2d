@@ -1,0 +1,6 @@
+chasz.png:
+  grass: [0, 0]
+  grass2: [1, 0]
+  water: [2, 0]
+  sand: [0, 1]
+  player: [3, 3]

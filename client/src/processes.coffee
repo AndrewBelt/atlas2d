@@ -1,27 +1,10 @@
 
-class Game
-  fps: 30
-  settings:
-    offset: new Vector()
-  
-  constructor: ->
-    @communicator = new Communicator()
-    @controller = new Controller()
-    @renderer = new Renderer()
-  run: ->
-    that = this
-    window.setInterval((-> that.step()), 1000/@fps)
-  step: ->
-    @communicator.updateData()
-    @renderer.render()
-
-
 # Processes
 
-class Communicator
+Communicator =
   recvStack: []
   
-  constructor: ->
+  init: ->
     url = 'ws://eris.phys.utk.edu:8080/'
     @ws = new WebSocket(url)
     that = this
@@ -43,13 +26,16 @@ class Communicator
       for id, datum of data
         entity = new Entity()
         entity.position = new Vector(datum.position[0], datum.position[1])
-        entity.sprite = sprites[datum.sprite]
+        entity.sprite = Game.sprites[datum.sprite]
         Entity.all[id] = entity
         console.log "Added entity \##{id}"
+        
+        if id == '1'
+          Renderer.focus = entity
 
 
-class Controller
-  constructor: ->
+Controller =
+  init: ->
     window.onkeydown = (e) ->
       # TEMP
       # Quick hack to set the screen offset for now
@@ -59,18 +45,20 @@ class Controller
         when 38 then new Vector(0, 1)
         when 39 then new Vector(-1, 0)
         when 40 then new Vector(0, -1)
-      game.settings.offset = game.settings.offset.add(deltaOffset) if deltaOffset
-    
+      Game.settings.offset = Game.settings.offset.add(deltaOffset) if deltaOffset
     window.onkeyup = (e) ->
 
 
-class Renderer
-  constructor: ->
+Renderer =
+  # The entity to be followed by the viewport
+  focus: null
+  
+  init: ->
     @canvas = document.getElementById('main')
     @ctx = @canvas.getContext('2d')
     @ctx.mozImageSmoothingEnabled = false
     @ctx.webkitImageSmoothingEnabled = false
-
+  
   render: ->
     # Clear screen
     @ctx.clearRect(0, 0, @canvas.width, @canvas.height)
@@ -79,8 +67,11 @@ class Renderer
     zoom = 3
     @ctx.scale(zoom, zoom)
     
-    # TEMP
-    offset = game.settings.offset
+    # Set up camera crew
+    offset = if @focus
+      @focus.position.sub(new Vector(7, 4))
+    else
+      new Vector()
     
     # Draw entities
     for id, entity of Entity.all
