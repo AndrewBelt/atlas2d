@@ -12,11 +12,11 @@ Then compile the client code. You'll need a number of dependencies, including HA
     cd client
     ./compile.rb
 
-You can then serve the `client/public` directory on the root of a server.
+You can then serve the `client/public` directory on the root URL of a webserver.
 
     python2 -m SimpleHTTPServer
 
-Finally, navigate to localhost:8000 to use the client.
+Finally, navigate to [localhost:8000](http://localhost:8000) to use the client.
 
 
 ## Authors

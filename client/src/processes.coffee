@@ -2,36 +2,48 @@
 # Processes
 
 Communicator =
-  recvStack: []
+  commandStack: []
   
   init: ->
-    url = 'ws://eris.phys.utk.edu:8080/'
+    url = "ws://#{window.location.hostname}:8080/"
     @ws = new WebSocket(url)
     that = this
     
     @ws.onopen = ->
       console.log("Websocket opened")
     @ws.onmessage = (e) ->
-      data = JSON.parse(e.data)
-      that.recvStack.push(data)
+      commands = JSON.parse(e.data)
+      for command in commands
+        that.commandStack.push(command)
     @ws.onclose = (e) ->
       console.log("Websocket closed")
     @ws.onerror = (e) ->
       console.log("Websocket error", e)
   
-  updateData: ->
-    # TEMP
-    # Quick and hacky
-    while data = @recvStack.shift()
-      for id, datum of data
-        entity = new Entity()
-        entity.position = new Vector(datum.position[0], datum.position[1])
-        entity.sprite = Game.sprites[datum.sprite]
-        Entity.all[id] = entity
-        console.log "Added entity \##{id}"
-        
-        if id == '1'
-          Renderer.focus = entity
+  processCommands: ->
+    while args = @commandStack.shift()
+      command = args.command
+      delete args.command
+      @commands[command](args)
+  
+  commands:
+    entityCreate: (args) ->
+      entity = new Entity()
+      entity.deserialize(args.entity)
+      Entity.all[args.id] = entity
+      # TEMP
+      if args.id == 1
+        Renderer.focus = entity
+    entityUpdate: (args) ->
+      entity = Entity.all[args.id]
+      entity.deserialize(args.entity)
+  
+  movePlayer: (delta) ->
+    data = {
+      command: 'movePlayer',
+      delta: delta.toArray()
+    }
+    @ws.send(JSON.stringify(data))
 
 
 Controller =
@@ -40,12 +52,13 @@ Controller =
       # TEMP
       # Quick hack to set the screen offset for now
       # (Don't actually send to the Movement process)
-      deltaOffset = switch e.keyCode
-        when 37 then new Vector(1, 0)
-        when 38 then new Vector(0, 1)
-        when 39 then new Vector(-1, 0)
-        when 40 then new Vector(0, -1)
-      Game.settings.offset = Game.settings.offset.add(deltaOffset) if deltaOffset
+      delta = switch e.keyCode
+        when 37 then new Vector(-1, 0)
+        when 38 then new Vector(0, -1)
+        when 39 then new Vector(1, 0)
+        when 40 then new Vector(0, 1)
+      if delta
+        Communicator.movePlayer(delta)
     window.onkeyup = (e) ->
 
 
@@ -68,14 +81,21 @@ Renderer =
     @ctx.scale(zoom, zoom)
     
     # Set up camera crew
-    offset = if @focus
-      @focus.position.sub(new Vector(7, 4))
+    offset = if @focus?
+      @focus.location.position.sub(new Vector(7, 4))
     else
       new Vector()
     
-    # Draw entities
+    # Sort entities
+    entities = []
     for id, entity of Entity.all
-      if entity.sprite and entity.position
-        entity.sprite.drawTo(@ctx, entity.position.add(offset))
+      entities.push(entity) if entity.location? and entity.sprite?
+    entities.sort (a, b) ->
+      a.location.layer - b.location.layer
+    
+    # Draw entities
+    for id, entity of entities
+      if entity.sprite? and entity.location?
+        entity.sprite.drawTo(@ctx, entity.location.position.sub(offset))
     
     @ctx.restore()
