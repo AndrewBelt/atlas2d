@@ -10,20 +10,20 @@ Communicator =
     that = this
     
     @ws.onopen = ->
-      console.log("Websocket opened")
+      console.log("WebSocket opened")
     @ws.onmessage = (e) ->
       commands = JSON.parse(e.data)
       for command in commands
         that.commandStack.push(command)
     @ws.onclose = (e) ->
-      console.log("Websocket closed")
+      console.log("WebSocket closed")
     @ws.onerror = (e) ->
-      console.log("Websocket error", e)
+      console.log("WebSocket error", e)
   
   processCommands: ->
     while args = @commandStack.shift()
-      command = args.command
-      delete args.command
+      command = args.cmd
+      delete args.cmd
       @commands[command](args)
   
   commands:
@@ -31,41 +31,41 @@ Communicator =
       entity = new Entity()
       entity.deserialize(args.entity)
       Entity.all[args.id] = entity
-      # TEMP
-      if args.id == 1
-        Renderer.focus = entity
     entityUpdate: (args) ->
       entity = Entity.all[args.id]
       entity.deserialize(args.entity)
+    entityDelete: (args) ->
+      delete Entity.all[args.id]
+    playerSet: (args) ->
+      Game.player = Entity.all[args.id]
+      console.log("Set player to \##{args.id}")
   
-  movePlayer: (delta) ->
+  playerMove: (position) ->
     data = {
-      command: 'movePlayer',
-      delta: delta.toArray()
+      cmd: 'playerMove',
+      position: position.toArray()
     }
     @ws.send(JSON.stringify(data))
 
 
-Controller =
+# Maintains a constant keyboard state
+Keyboard =
   init: ->
+    @keys = {}
+    that = this
+    
     window.onkeydown = (e) ->
-      # TEMP
-      # Quick hack to set the screen offset for now
-      # (Don't actually send to the Movement process)
-      delta = switch e.keyCode
-        when 37 then new Vector(-1, 0)
-        when 38 then new Vector(0, -1)
-        when 39 then new Vector(1, 0)
-        when 40 then new Vector(0, 1)
-      if delta
-        Communicator.movePlayer(delta)
+      that.keys[e.keyCode] = true
     window.onkeyup = (e) ->
+      delete that.keys[e.keyCode]
+    window.onblur = ->
+      that.keys = {}
+  
+  isPressed: (key) ->
+    @keys[key]?
 
 
 Renderer =
-  # The entity to be followed by the viewport
-  focus: null
-  
   init: ->
     @canvas = document.getElementById('main')
     @ctx = @canvas.getContext('2d')
@@ -81,21 +81,43 @@ Renderer =
     @ctx.scale(zoom, zoom)
     
     # Set up camera crew
-    offset = if @focus?
-      @focus.location.position.sub(new Vector(7, 4))
+    offset = if Game.player
+      Game.player.location.position.sub(new Vector(7, 4))
     else
       new Vector()
     
-    # Sort entities
+    # Filter and sort entities
     entities = []
     for id, entity of Entity.all
-      entities.push(entity) if entity.location? and entity.sprite?
+      entities.push(entity) if entity.location and entity.sprite
     entities.sort (a, b) ->
       a.location.layer - b.location.layer
     
     # Draw entities
     for id, entity of entities
-      if entity.sprite? and entity.location?
-        entity.sprite.drawTo(@ctx, entity.location.position.sub(offset))
+      position = entity.location.position.sub(offset)
+      entity.sprite.drawTo(@ctx, position)
     
     @ctx.restore()
+
+
+Movement =
+  move: ->
+    offset = new Vector(0, 0)
+    offset.addto(new Vector(1, 0)) if Keyboard.isPressed(39)
+    offset.addto(new Vector(0, 1)) if Keyboard.isPressed(40)
+    offset.addto(new Vector(-1, 0)) if Keyboard.isPressed(37)
+    offset.addto(new Vector(0, -1)) if Keyboard.isPressed(38)
+    
+    if offset.norm() > 0 and Game.player
+      offset = offset.normalize().mul(Game.settings.speed / 16)
+      position = Game.player.location.position.add(offset)
+      
+      # Really dumb collision handling
+      position.x = 0 if position.x < 0
+      position.y = 0 if position.y < 0
+      position.x = 14 if position.x > 14
+      position.y = 9 if position.y > 9
+      
+      Game.player.location.position = position
+      Communicator.playerMove(position)
