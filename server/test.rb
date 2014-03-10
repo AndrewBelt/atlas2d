@@ -198,7 +198,7 @@ class Connection
     @ws.send data.to_json
     
     @player = Entity.new
-    @player[:location] = Location.new(Vector[7, 4], 2)
+    @player[:location] = Location.new(Vector[15, 15], 2)
     @player[:sprite] = 'player'
     Entity.all << @player
     
@@ -218,6 +218,8 @@ class Connection
   
   def process(data)
     # TEMP
+    data = data.last
+    
     if data['cmd'] == 'playerMove' and @player
       @player[:location].position = Vector.from_a(data['position'])
       
@@ -252,8 +254,8 @@ end
 # main.rb
 
 # Create some initial tiles
-10.times do |y|
-  15.times do |x|
+30.times do |y|
+  30.times do |x|
     e = Entity.new
     e[:location] = Location.new(Vector[x, y], 1)
     e[:sprite] = %w{grass grass2 sand}.sample

@@ -18,6 +18,7 @@ Game =
     Keyboard.init()
     Renderer.init()
   run: ->
+    @frame = 0
     @requestStep()
   requestStep: ->
     that = this
@@ -26,6 +27,9 @@ Game =
     Movement.move()
     Communicator.processCommands()
     Renderer.render()
+    Communicator.pushRequests() if @frame % 4 == 0
+    
+    @frame++
     @requestStep()
 
 

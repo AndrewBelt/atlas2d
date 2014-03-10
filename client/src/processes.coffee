@@ -2,7 +2,9 @@
 # Processes
 
 Communicator =
+  log: false
   commandStack: []
+  requestStack: []
   
   init: ->
     url = "ws://#{window.location.hostname}:8080/"
@@ -12,6 +14,7 @@ Communicator =
     @ws.onopen = ->
       console.log("WebSocket opened")
     @ws.onmessage = (e) ->
+      console.log("Recv #{e.data.length} bytes") if that.log
       commands = JSON.parse(e.data)
       for command in commands
         that.commandStack.push(command)
@@ -20,6 +23,7 @@ Communicator =
     @ws.onerror = (e) ->
       console.log("WebSocket error", e)
   
+  # Commands
   processCommands: ->
     while args = @commandStack.shift()
       command = args.cmd
@@ -40,12 +44,19 @@ Communicator =
       Game.player = Entity.all[args.id]
       console.log("Set player to \##{args.id}")
   
+  # Requests
+  pushRequests: ->
+    if @ws.readyState == 1 and @requestStack.length > 0
+      json = JSON.stringify(@requestStack)
+      @ws.send(json)
+      console.log("Sent #{json.length} bytes") if @log
+      @requestStack.length = 0
+  
   playerMove: (position) ->
-    data = {
+    @requestStack.push {
       cmd: 'playerMove',
       position: position.toArray()
     }
-    @ws.send(JSON.stringify(data))
 
 
 # Maintains a constant keyboard state
@@ -90,10 +101,9 @@ Renderer =
     @ctx.scale(Game.settings.zoom, Game.settings.zoom)
     
     # Set up camera crew
+    viewSize = new Vector(@canvas.width, @canvas.height).div(16 * Game.settings.zoom)
     offset = if Game.player
-      center = new Vector(@canvas.width, @canvas.height).
-        div(16 * 2 * Game.settings.zoom)
-      Game.player.location.position.sub(center)
+      Game.player.location.position.sub(viewSize.div(2))
     else
       new Vector()
     
@@ -129,8 +139,6 @@ Movement =
       # Really dumb collision handling
       position.x = 0 if position.x < 0
       position.y = 0 if position.y < 0
-      position.x = 14 if position.x > 14
-      position.y = 9 if position.y > 9
       
       Game.player.location.position = position
       Communicator.playerMove(position)
