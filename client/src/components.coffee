@@ -43,6 +43,6 @@ class Location
 class Sprite
   constructor: (@img, @source) ->
   drawTo: (ctx, pos) ->
-    dest = pos.mul(16)#.quantize()
+    dest = pos.mul(16).quantize()
     ctx.drawImage(@img, @source.x*16, @source.y*16, 16, 16,
       dest.x, dest.y, 16, 16)

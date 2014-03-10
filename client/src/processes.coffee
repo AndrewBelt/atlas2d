@@ -68,21 +68,32 @@ Keyboard =
 Renderer =
   init: ->
     @canvas = document.getElementById('main')
+    
+    that = this
+    window.onload = window.onresize = ->
+      that.resize(document.body.clientWidth, document.body.clientHeight)
+  
+  resize: (width, height) ->
+    @canvas.width = width
+    @canvas.height = height
+    # We have to reset the context settings
     @ctx = @canvas.getContext('2d')
     @ctx.mozImageSmoothingEnabled = false
     @ctx.webkitImageSmoothingEnabled = false
   
   render: ->
+    return unless @ctx
     # Clear screen
     @ctx.clearRect(0, 0, @canvas.width, @canvas.height)
     
     @ctx.save()
-    zoom = 3
-    @ctx.scale(zoom, zoom)
+    @ctx.scale(Game.settings.zoom, Game.settings.zoom)
     
     # Set up camera crew
     offset = if Game.player
-      Game.player.location.position.sub(new Vector(7, 4))
+      center = new Vector(@canvas.width, @canvas.height).
+        div(16 * 2 * Game.settings.zoom)
+      Game.player.location.position.sub(center)
     else
       new Vector()
     
@@ -91,7 +102,9 @@ Renderer =
     for id, entity of Entity.all
       entities.push(entity) if entity.location and entity.sprite
     entities.sort (a, b) ->
-      a.location.layer - b.location.layer
+      ret = a.location.layer - b.location.layer
+      return ret if ret
+      a.location.position.y - b.location.position.y
     
     # Draw entities
     for id, entity of entities

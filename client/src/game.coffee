@@ -1,9 +1,15 @@
 
+window.requestAnimationFrame =
+  window.requestAnimationFrame or
+  window.mozRequestAnimationFrame or
+  window.webkitRequestAnimationFrame or
+  window.msRequestAnimationFrame
+
+
 Game =
   settings:
-    fps: 30
-    # speed: 15 # sanic
-    speed: 5
+    zoom: 3
+    speed: 3 # 15 sanic
   sprites: {}
   player: undefined
   
@@ -12,12 +18,15 @@ Game =
     Keyboard.init()
     Renderer.init()
   run: ->
+    @requestStep()
+  requestStep: ->
     that = this
-    window.setInterval((-> that.step()), 1000/@settings.fps)
+    window.requestAnimationFrame((-> that.step()))
   step: ->
     Movement.move()
     Communicator.processCommands()
     Renderer.render()
+    @requestStep()
 
 
 class Entity
