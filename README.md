@@ -5,7 +5,7 @@ Codenamed Atlas 2D for now, this project is an HTML5 browser-based sandbox MMORP
 
 ## Setup
 
-First you should compile the client code. You'll need a number of dependencies, including [HAML](http://haml.info/) `gem install haml` and [CoffeeScript](http://coffeescript.org/) `gem install coffee-script`.
+First you should compile the client code. You'll need a number of dependencies, including [HAML](http://haml.info/) `gem install haml` and [CoffeeScript](http://coffeescript.org/) `npm install -g coffee-script`.
 
     cd client
     ./compile.rb
