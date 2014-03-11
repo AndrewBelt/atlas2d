@@ -4,3 +4,4 @@ chasz.png:
   water: [2, 0]
   sand: [0, 1]
   player: [3, 3]
+  # frames: [[3, 3], [3, 4], [3, 5], [3, 6]]

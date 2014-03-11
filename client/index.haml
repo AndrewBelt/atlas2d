@@ -1,8 +1,15 @@
 !!!
 %html
   %head
+    %meta{charset: 'UTF-8'}
     %title Atlas 2D
     %link{rel: 'stylesheet', href: 'css/main.css'}
+    
+    %link{rel: 'apple-touch-icon', href: 'ios-icon.png'}
+    %meta{name: 'apple-mobile-web-app-capable', content: 'yes'}
+    %meta{name: 'viewport', content: 'width=device-width,user-scalable=no'}
+    :javascript
+      document.addEventListener("touchmove", function(e) {e.preventDefault();}, false);
   %body
     %canvas#main
     %script{src: 'js/game.js'}

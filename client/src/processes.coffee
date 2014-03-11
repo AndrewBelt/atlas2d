@@ -9,7 +9,7 @@ Communicator =
   init: ->
     url = "ws://#{window.location.hostname}:8080/"
     @ws = new WebSocket(url)
-    that = this
+    that = @
     
     @ws.onopen = ->
       console.log("WebSocket opened")
@@ -32,16 +32,14 @@ Communicator =
   
   commands:
     entityCreate: (args) ->
-      entity = new Entity()
-      entity.deserialize(args.entity)
-      Entity.all[args.id] = entity
+      Game.entities[args.id] = args.entity
     entityUpdate: (args) ->
-      entity = Entity.all[args.id]
-      entity.deserialize(args.entity)
+      entity = Game.entities[args.id]
+      Utils.merge(entity, args.entity, true)
     entityDelete: (args) ->
-      delete Entity.all[args.id]
+      delete Game.entities[args.id]
     playerSet: (args) ->
-      Game.player = Entity.all[args.id]
+      Game.player = Game.entities[args.id]
       console.log("Set player to \##{args.id}")
   
   # Requests
@@ -59,11 +57,11 @@ Communicator =
     }
 
 
-# Maintains a constant keyboard state
-Keyboard =
+# Maintains a constant controller state
+Controller =
   init: ->
     @keys = {}
-    that = this
+    that = @
     
     window.onkeydown = (e) ->
       that.keys[e.keyCode] = true
@@ -80,7 +78,7 @@ Renderer =
   init: ->
     @canvas = document.getElementById('main')
     
-    that = this
+    that = @
     window.onload = window.onresize = ->
       that.resize(document.body.clientWidth, document.body.clientHeight)
   
@@ -101,44 +99,49 @@ Renderer =
     @ctx.scale(Game.settings.zoom, Game.settings.zoom)
     
     # Set up camera crew
-    viewSize = new Vector(@canvas.width, @canvas.height).div(16 * Game.settings.zoom)
-    offset = if Game.player
-      Game.player.location.position.sub(viewSize.div(2))
+    center = if Game.player
+      position = Vector.fromArray(Game.player.location.position)
+      position.add(new Vector(0.5, 0.5))
     else
       new Vector()
+    viewportSize = new Vector(@canvas.width, @canvas.height).div(16 * Game.settings.zoom)
+    viewport = new Rect(center.sub(viewportSize.div(2)), viewportSize)
     
     # Filter and sort entities
     entities = []
-    for id, entity of Entity.all
-      entities.push(entity) if entity.location and entity.sprite
+    for id, entity of Game.entities
+      entities.push(entity) if entity.location
     entities.sort (a, b) ->
-      ret = a.location.layer - b.location.layer
-      return ret if ret
-      a.location.position.y - b.location.position.y
+      (a.location.layer - b.location.layer) or
+        a.location.position[1] - b.location.position[1]
     
     # Draw entities
     for id, entity of entities
-      position = entity.location.position.sub(offset)
-      entity.sprite.drawTo(@ctx, position)
+      position = Vector.fromArray(entity.location.position)
+      box = new Rect(position, new Vector(1, 1))
+      # Only draw the entity if it will display on the screen
+      if viewport.overlaps(box)
+        sprite = Game.sprites[entity.sprite]
+        sprite.drawTo(@ctx, box.position.sub(viewport.position))
     
     @ctx.restore()
 
 
 Movement =
   move: ->
-    offset = new Vector(0, 0)
-    offset.addto(new Vector(1, 0)) if Keyboard.isPressed(39)
-    offset.addto(new Vector(0, 1)) if Keyboard.isPressed(40)
-    offset.addto(new Vector(-1, 0)) if Keyboard.isPressed(37)
-    offset.addto(new Vector(0, -1)) if Keyboard.isPressed(38)
+    delta = new Vector(0, 0)
+    delta.addto(new Vector(1, 0)) if Controller.isPressed(39)
+    delta.addto(new Vector(0, 1)) if Controller.isPressed(40)
+    delta.addto(new Vector(-1, 0)) if Controller.isPressed(37)
+    delta.addto(new Vector(0, -1)) if Controller.isPressed(38)
     
-    if offset.norm() > 0 and Game.player
-      offset = offset.normalize().mul(Game.settings.speed / 16)
-      position = Game.player.location.position.add(offset)
+    if delta.norm() > 0 and Game.player
+      delta = delta.normalize().mul(Game.settings.speed / 16)
+      position = Vector.fromArray(Game.player.location.position).add(delta)
       
       # Really dumb collision handling
       position.x = 0 if position.x < 0
       position.y = 0 if position.y < 0
       
-      Game.player.location.position = position
+      Game.player.location.position = position.toArray()
       Communicator.playerMove(position)
