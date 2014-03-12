@@ -3,5 +3,8 @@ chasz.png:
   grass2: [1, 0]
   water: [2, 0]
   sand: [0, 1]
-  player: [3, 3]
-  # frames: [[3, 3], [3, 4], [3, 5], [3, 6]]
+van.png:
+  player:
+    frames: [[0, 0], [1, 0], [2, 0], [1, 0]]
+    delay: 8
+    size: [1, 1.5]

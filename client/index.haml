@@ -8,8 +8,13 @@
     %link{rel: 'apple-touch-icon', href: 'ios-icon.png'}
     %meta{name: 'apple-mobile-web-app-capable', content: 'yes'}
     %meta{name: 'viewport', content: 'width=device-width,user-scalable=no'}
-    :javascript
-      document.addEventListener("touchmove", function(e) {e.preventDefault();}, false);
+    
+    %script{src: 'js/jquery-2.1.0.min.js'}
+    %script{src: 'js/game.js'}
   %body
     %canvas#main
-    %script{src: 'js/game.js'}
+    
+    .gui-window#chat-window
+      #messages
+      %div
+        %input#message-input{type: 'text'}

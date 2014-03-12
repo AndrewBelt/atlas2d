@@ -3,13 +3,44 @@ html, body {
   margin: 0;
   width: 100%;
   height: 100%;
+  
 }
 
 body, html {
   overflow: hidden;
 }
 
+body, input {
+  font-family: sans-serif;
+}
+
 canvas {
   background: black;
   display: block;
+}
+
+.gui-window {
+  position: fixed;
+  background: white;
+  opacity: 0.75;
+}
+
+#chat-window {
+  width: 400px;
+  left: 20px;
+  bottom: 20px;
+}
+
+#messages {
+  max-height: 100px;
+  overflow-y: auto;
+}
+
+#messages p {
+  margin: 0;
+}
+
+#message-input {
+  width: 100%;
+  border: 1px solid black;
 }

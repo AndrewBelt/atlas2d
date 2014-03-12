@@ -12,7 +12,7 @@ mkpath 'public/assets'
 
 
 # HTML
-puts "Compiling HAML..."
+puts "Generating HTML..."
 `haml index.haml > public/index.html`
 
 # CSS
@@ -20,17 +20,18 @@ puts "Copying assets..."
 cp 'main.css', 'public/css/'
 
 # Javascript
-puts "Compiling CoffeeScript..."
+puts "Generating Javascript..."
 coffeescripts = %w{
   src/util.coffee
   src/processes.coffee
   src/game.coffee
   src/main.coffee
+  src/gui.coffee
 }.join ' '
 `coffee -cj public/js/game.js #{coffeescripts}`
 
 # JSON
-puts "Compiling JSON..."
+puts "Generating JSON..."
 require 'json'
 require 'yaml'
 tilesets = YAML.load_file('tilesets.yml')

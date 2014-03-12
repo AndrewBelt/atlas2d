@@ -8,10 +8,10 @@ window.requestAnimationFrame =
 
 Game =
   settings:
-    zoom: 3
-    speed: 3 # 15 sanic
+    zoom: 4
+    speed: 1.5 # 15 sanic
   entities: {}
-  sprites: {}
+  graphics: {}
   
   init: ->
     Communicator.init()
@@ -24,23 +24,36 @@ Game =
     that = this
     window.requestAnimationFrame((-> that.step()))
   step: ->
-    Movement.move()
-    Communicator.processCommands()
-    Renderer.render()
-    Communicator.pushRequests() if @frame % 100 == 0
-    
+    # Advance frame and update framerate
     @frame++
     now = new Date()
     @lastFramerate = 1000 / (now - @lastTime) if @lastTime
     @lastTime = now
     
+    Movement.move()
+    Communicator.processCommands()
+    Renderer.render()
+    Communicator.pushRequests() if @frame % 2 == 0
+    
     @requestStep()
 
 
 # TEMP
-class Sprite
-  constructor: (@img, @source) ->
-  drawTo: (ctx, pos) ->
-    dest = pos.mul(16).round()
-    ctx.drawImage(@img, @source.x*16, @source.y*16, 16, 16,
+class StaticGraphic
+  draw: (ctx, pos, graphicData) ->
+    dest = pos.mul(16)#.round()
+    ctx.drawImage(@image, @source.x*16, @source.y*16, 16, 16,
       dest.x, dest.y, 16, 16)
+
+class AnimatedGraphic
+  draw: (ctx, pos, graphicData) ->
+    frame = graphicData.frame or 0
+    source = @frames[Math.floor(frame / @delay)].mul(16)
+    
+    # Advance the graphic component's frame upon drawing
+    graphicData.frame = (frame + 1) % (@frames.length * @delay)
+    
+    dest = pos.mul(16)#.round()
+    size = @size.mul(16)
+    ctx.drawImage(@image, source.x, source.y, size.x, size.y,
+      dest.x, dest.y, size.x, size.y)

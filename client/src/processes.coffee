@@ -4,7 +4,6 @@
 Communicator =
   log: false
   commandStack: []
-  requestStack: []
   
   init: ->
     url = "ws://#{window.location.hostname}:8080/"
@@ -23,13 +22,20 @@ Communicator =
     @ws.onerror = (e) ->
       console.log("WebSocket error", e)
   
-  # Commands
+  pushRequests: ->
+    if @ws.readyState == 1 and Request.requestStack.length > 0
+      json = JSON.stringify(Request.requestStack)
+      @ws.send(json)
+      console.log("Sent #{json.length} bytes") if @log
+      Request.requestStack.length = 0
+  
   processCommands: ->
     while args = @commandStack.shift()
       command = args.cmd
       delete args.cmd
       @commands[command](args)
   
+  ## Commands (server --> client)
   commands:
     entityCreate: (args) ->
       Game.entities[args.id] = args.entity
@@ -41,19 +47,24 @@ Communicator =
     playerSet: (args) ->
       Game.player = Game.entities[args.id]
       console.log("Set player to \##{args.id}")
-  
-  # Requests
-  pushRequests: ->
-    if @ws.readyState == 1 and @requestStack.length > 0
-      json = JSON.stringify(@requestStack)
-      @ws.send(json)
-      console.log("Sent #{json.length} bytes") if @log
-      @requestStack.length = 0
+    chatDisplay: (args) ->
+      GUI.chatDisplay(args.text)
+
+
+## Requests (client --> server)
+Request =
+  requestStack: []
   
   playerMove: (position) ->
     @requestStack.push {
       cmd: 'playerMove',
       position: position.toArray()
+    }
+  
+  chatSend: (text) ->
+    @requestStack.push {
+      cmd: 'chatSend',
+      text: text
     }
 
 
@@ -69,6 +80,10 @@ Controller =
       delete that.keys[e.keyCode]
     window.onblur = ->
       that.keys = {}
+    
+    # Disable tablet scrolling
+    document.addEventListener 'touchmove', (e) ->
+      e.preventDefault()
   
   isPressed: (key) ->
     @keys[key]?
@@ -77,10 +92,12 @@ Controller =
 Renderer =
   init: ->
     @canvas = document.getElementById('main')
+    console.log @canvas
     
     that = @
-    window.onload = window.onresize = ->
+    window.onresize = ->
       that.resize(document.body.clientWidth, document.body.clientHeight)
+    window.onresize()
   
   resize: (width, height) ->
     @canvas.width = width
@@ -107,24 +124,28 @@ Renderer =
     viewportSize = new Vector(@canvas.width, @canvas.height).div(16 * Game.settings.zoom)
     viewport = new Rect(center.sub(viewportSize.div(2)), viewportSize)
     
-    # Filter and sort entities
-    entities = []
-    for id, entity of Game.entities
-      entities.push(entity) if entity.location
-    entities.sort (a, b) ->
-      (a.location.layer - b.location.layer) or
-        a.location.position[1] - b.location.position[1]
+    drawables = @drawables()
     
     # Draw entities
-    for id, entity of entities
-      position = Vector.fromArray(entity.location.position)
-      box = new Rect(position, new Vector(1, 1))
-      # Only draw the entity if it will display on the screen
+    for id, drawable of drawables
+      box = new Rect(Vector.fromArray(drawable.location.position), new Vector(1, 1))
+      # Only draw the drawable if it will display on the screen
       if viewport.overlaps(box)
-        sprite = Game.sprites[entity.sprite]
-        sprite.drawTo(@ctx, box.position.sub(viewport.position))
+        position = box.position.sub(viewport.position)
+        graphic = Game.graphics[drawable.graphic.name]
+        graphic.draw(@ctx, position, drawable.graphic)
     
     @ctx.restore()
+  
+  drawables: ->
+    # Filter and sort entities
+    drawables = []
+    for id, entity of Game.entities
+      drawables.push(entity) if entity.location and entity.graphic
+    drawables.sort (a, b) ->
+      (a.location.layer - b.location.layer) or
+        a.location.position[1] - b.location.position[1]
+    drawables
 
 
 Movement =
@@ -139,9 +160,5 @@ Movement =
       delta = delta.normalize().mul(Game.settings.speed / 16)
       position = Vector.fromArray(Game.player.location.position).add(delta)
       
-      # Really dumb collision handling
-      position.x = 0 if position.x < 0
-      position.y = 0 if position.y < 0
-      
       Game.player.location.position = position.toArray()
-      Communicator.playerMove(position)
+      Request.playerMove(position)

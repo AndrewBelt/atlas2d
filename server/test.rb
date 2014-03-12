@@ -199,7 +199,10 @@ class Connection
     
     @player = Entity.new
     @player[:location] = Location.new(Vector[15, 15], 2)
-    @player[:sprite] = 'player'
+    @player[:graphic] = {
+      name: 'player',
+      animating: true
+    }
     Entity.all << @player
     
     Connection.all.each do |conn|
@@ -235,6 +238,15 @@ class Connection
         }].to_json)
       end
     end
+    
+    if data['cmd'] == 'chatSend'
+      Connection.all.each do |conn|
+        conn.ws.send([{
+          cmd: 'chatDisplay',
+          text: data['text']
+        }].to_json)
+      end
+    end
   end
   
   def close
@@ -258,7 +270,9 @@ end
   30.times do |x|
     e = Entity.new
     e[:location] = Location.new(Vector[x, y], 1)
-    e[:sprite] = %w{grass grass2 sand}.sample
+    e[:graphic] = {
+      name: %w{grass grass2 sand}.sample
+    }
     Entity.all << e
   end
 end
