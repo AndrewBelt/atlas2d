@@ -240,11 +240,19 @@ class Connection
     end
     
     if data['cmd'] == 'chatSend'
-      Connection.all.each do |conn|
-        conn.ws.send([{
-          cmd: 'chatDisplay',
-          text: data['text']
-        }].to_json)
+      text = data['text'].strip
+      
+      if text[0] == '{'
+        # Echo back the command
+        @ws.send("[#{text}]")
+      else
+        # Send the message to all Connections
+        Connection.all.each do |conn|
+          conn.ws.send([{
+            cmd: 'chatDisplay',
+            text: data['text']
+          }].to_json)
+        end
       end
     end
   end

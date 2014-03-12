@@ -31,38 +31,39 @@ Communicator =
   
   processCommands: ->
     while args = @commandStack.shift()
-      command = args.cmd
+      command = @commands[args.cmd]
+      throw "'#{args.cmd}' is not a command" unless command
       delete args.cmd
-      @commands[command](args)
+      command(args)
   
   ## Commands (server --> client)
   commands:
     entityCreate: (args) ->
       Game.entities[args.id] = args.entity
     entityUpdate: (args) ->
-      entity = Game.entities[args.id]
-      Utils.merge(entity, args.entity, true)
+      Utils.merge(Game.entities[args.id], args.entity, true)
     entityDelete: (args) ->
       delete Game.entities[args.id]
     playerSet: (args) ->
-      Game.player = Game.entities[args.id]
+      Game.playerId = args.id
       console.log("Set player to \##{args.id}")
     chatDisplay: (args) ->
       GUI.chatDisplay(args.text)
 
 
-## Requests (client --> server)
 Request =
   requestStack: []
+  push: (command) ->
+    @requestStack.push(command)
   
+  ## Requests (client --> server)
   playerMove: (position) ->
-    @requestStack.push {
+    @push {
       cmd: 'playerMove',
       position: position.toArray()
     }
-  
   chatSend: (text) ->
-    @requestStack.push {
+    @push {
       cmd: 'chatSend',
       text: text
     }
@@ -92,8 +93,6 @@ Controller =
 Renderer =
   init: ->
     @canvas = document.getElementById('main')
-    console.log @canvas
-    
     that = @
     window.onresize = ->
       that.resize(document.body.clientWidth, document.body.clientHeight)
@@ -116,8 +115,9 @@ Renderer =
     @ctx.scale(Game.settings.zoom, Game.settings.zoom)
     
     # Set up camera crew
-    center = if Game.player
-      position = Vector.fromArray(Game.player.location.position)
+    center = if Game.playerId
+      player = Game.entities[Game.playerId]
+      position = Vector.fromArray(player.location.position)
       position.add(new Vector(0.5, 0.5))
     else
       new Vector()
@@ -151,14 +151,15 @@ Renderer =
 Movement =
   move: ->
     delta = new Vector(0, 0)
-    delta.addto(new Vector(1, 0)) if Controller.isPressed(39)
-    delta.addto(new Vector(0, 1)) if Controller.isPressed(40)
-    delta.addto(new Vector(-1, 0)) if Controller.isPressed(37)
-    delta.addto(new Vector(0, -1)) if Controller.isPressed(38)
+    delta.x = Controller.isPressed(39) - Controller.isPressed(37)
+    delta.y = Controller.isPressed(40) - Controller.isPressed(38)
     
-    if delta.norm() > 0 and Game.player
-      delta = delta.normalize().mul(Game.settings.speed / 16)
-      position = Vector.fromArray(Game.player.location.position).add(delta)
+    if Game.playerId and !delta.isZero()
+      # Scale approximately by 1/sqrt(2) ~ 3/4 if going diagonal
+      delta = delta.mul(0.75) if delta.x != 0 and delta.y != 0
+      delta = delta.mul(Game.settings.speed / 16)
       
-      Game.player.location.position = position.toArray()
+      player = Game.entities[Game.playerId]
+      position = Vector.fromArray(player.location.position).add(delta)
+      player.location.position = position.toArray()
       Request.playerMove(position)

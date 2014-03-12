@@ -8,8 +8,8 @@ window.requestAnimationFrame =
 
 Game =
   settings:
-    zoom: 4
-    speed: 1.5 # 15 sanic
+    zoom: 3
+    speed: 2 # 15 sanic
   entities: {}
   graphics: {}
   
@@ -30,10 +30,13 @@ Game =
     @lastFramerate = 1000 / (now - @lastTime) if @lastTime
     @lastTime = now
     
-    Movement.move()
-    Communicator.processCommands()
-    Renderer.render()
-    Communicator.pushRequests() if @frame % 2 == 0
+    try
+      Movement.move()
+      Communicator.processCommands()
+      Renderer.render()
+      Communicator.pushRequests() if @frame % 2 == 0
+    catch error
+      console.log("Error in game loop: #{error}")
     
     @requestStep()
 
@@ -41,7 +44,7 @@ Game =
 # TEMP
 class StaticGraphic
   draw: (ctx, pos, graphicData) ->
-    dest = pos.mul(16)#.round()
+    dest = pos.mul(16).round()
     ctx.drawImage(@image, @source.x*16, @source.y*16, 16, 16,
       dest.x, dest.y, 16, 16)
 
@@ -53,7 +56,7 @@ class AnimatedGraphic
     # Advance the graphic component's frame upon drawing
     graphicData.frame = (frame + 1) % (@frames.length * @delay)
     
-    dest = pos.mul(16)#.round()
+    dest = pos.mul(16).round()
     size = @size.mul(16)
     ctx.drawImage(@image, source.x, source.y, size.x, size.y,
       dest.x, dest.y, size.x, size.y)

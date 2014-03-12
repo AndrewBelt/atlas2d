@@ -41,6 +41,8 @@ class Vector
     new Vector(@x / a, @y / a)
   
   # Functions
+  isZero: ->
+    @x == 0 and @y == 0
   norm: ->
     Math.sqrt(@x*@x + @y*@y)
     # Math.hypot(@x, @y)
