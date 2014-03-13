@@ -5,6 +5,11 @@ chasz.png:
   sand: [0, 1]
 van.png:
   player:
-    frames: [[0, 0], [1, 0], [2, 0], [1, 0]]
+    animations:
+      down: [[1, 0], [0, 0], [1, 0], [2, 0]]
+      up:   [[4, 0], [3, 0], [4, 0], [5, 0]]
+      left: [[4, 2], [5, 2], [4, 2], [6, 2]]
+      right: [[3, 2], [2, 2], [3, 2], [1, 2]]
     delay: 8
-    size: [1, 1.5]
+    size: [1, 2]
+    default: down

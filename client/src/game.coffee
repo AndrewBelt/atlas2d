@@ -8,8 +8,8 @@ window.requestAnimationFrame =
 
 Game =
   settings:
-    zoom: 3
-    speed: 2 # 15 sanic
+    zoom: 4
+    speed: 1.5 # 15 sanic
   entities: {}
   graphics: {}
   
@@ -30,33 +30,53 @@ Game =
     @lastFramerate = 1000 / (now - @lastTime) if @lastTime
     @lastTime = now
     
-    try
-      Movement.move()
-      Communicator.processCommands()
-      Renderer.render()
-      Communicator.pushRequests() if @frame % 2 == 0
-    catch error
-      console.log("Error in game loop: #{error}")
+    Movement.move()
+    Communicator.processCommands()
+    Renderer.render()
+    Communicator.pushRequests() if @frame % 2 == 0
     
     @requestStep()
 
 
-# TEMP
-class StaticGraphic
+class Graphic
+  constructor: (@image, data) ->
+    if data instanceof Array
+      @coords = Vector.fromArray(data)
+    else
+      @animations = {}
+      for name, animation of data.animations
+        @animations[name] = for frame in animation
+          Vector.fromArray(frame)
+      
+      @delay = data.delay or 1
+      @size = if data.size then Vector.fromArray(data.size) else new Vector(1, 1)
+      @default = data.default
+  
   draw: (ctx, pos, graphicData) ->
     dest = pos.mul(16).round()
-    ctx.drawImage(@image, @source.x*16, @source.y*16, 16, 16,
-      dest.x, dest.y, 16, 16)
-
-class AnimatedGraphic
-  draw: (ctx, pos, graphicData) ->
-    frame = graphicData.frame or 0
-    source = @frames[Math.floor(frame / @delay)].mul(16)
     
-    # Advance the graphic component's frame upon drawing
-    graphicData.frame = (frame + 1) % (@frames.length * @delay)
+    # Mini graphic
+    if @coords?
+      ctx.drawImage(@image, @coords.x*16, @coords.y*16, 16, 16,
+        dest.x, dest.y, 16, 16)
     
-    dest = pos.mul(16).round()
-    size = @size.mul(16)
-    ctx.drawImage(@image, source.x, source.y, size.x, size.y,
-      dest.x, dest.y, size.x, size.y)
+    # Full graphic
+    else
+      animation = @animations[graphicData.animation]
+      animation = @animations[@default] unless animation
+      # Fail silently if no animation is found
+      return unless animation
+      
+      frameIndex = if !graphicData.animating then 0
+      else
+        subframe = graphicData.subframe or 0
+        frame = graphicData.frame or 0
+        # Advance the graphic component's frame upon drawing
+        graphicData.frame = (frame + 1) % (animation.length * @delay)
+        Math.floor(frame / @delay)
+      
+      source = animation[frameIndex].mul(16)
+      
+      size = @size.mul(16)
+      ctx.drawImage(@image, source.x, source.y, size.x, size.y,
+        dest.x, dest.y, size.x, size.y)

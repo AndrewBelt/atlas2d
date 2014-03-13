@@ -46,7 +46,6 @@ Communicator =
       delete Game.entities[args.id]
     playerSet: (args) ->
       Game.playerId = args.id
-      console.log("Set player to \##{args.id}")
     chatDisplay: (args) ->
       GUI.chatDisplay(args.text)
 
@@ -114,28 +113,30 @@ Renderer =
     @ctx.save()
     @ctx.scale(Game.settings.zoom, Game.settings.zoom)
     
-    # Set up camera crew
-    center = if Game.playerId
-      player = Game.entities[Game.playerId]
-      position = Vector.fromArray(player.location.position)
-      position.add(new Vector(0.5, 0.5))
-    else
-      new Vector()
-    viewportSize = new Vector(@canvas.width, @canvas.height).div(16 * Game.settings.zoom)
-    viewport = new Rect(center.sub(viewportSize.div(2)), viewportSize)
+    try
+      # Set up camera crew
+      center = if Game.playerId
+        player = Game.entities[Game.playerId]
+        position = Vector.fromArray(player.location.position)
+        position.add(new Vector(0.5, 0.5))
+      else
+        new Vector()
+      viewportSize = new Vector(@canvas.width, @canvas.height).div(16 * Game.settings.zoom)
+      viewport = new Rect(center.sub(viewportSize.div(2)), viewportSize)
+      
+      drawables = @drawables()
+      
+      # Draw entities
+      for id, drawable of drawables
+        box = new Rect(Vector.fromArray(drawable.location.position), new Vector(1, 1))
+        # Only draw the drawable if it will display on the screen
+        if viewport.overlaps(box)
+          position = box.position.sub(viewport.position)
+          graphic = Game.graphics[drawable.graphic.name]
+          graphic.draw(@ctx, position, drawable.graphic)
     
-    drawables = @drawables()
-    
-    # Draw entities
-    for id, drawable of drawables
-      box = new Rect(Vector.fromArray(drawable.location.position), new Vector(1, 1))
-      # Only draw the drawable if it will display on the screen
-      if viewport.overlaps(box)
-        position = box.position.sub(viewport.position)
-        graphic = Game.graphics[drawable.graphic.name]
-        graphic.draw(@ctx, position, drawable.graphic)
-    
-    @ctx.restore()
+    finally
+      @ctx.restore()
   
   drawables: ->
     # Filter and sort entities
@@ -154,12 +155,26 @@ Movement =
     delta.x = Controller.isPressed(39) - Controller.isPressed(37)
     delta.y = Controller.isPressed(40) - Controller.isPressed(38)
     
-    if Game.playerId and !delta.isZero()
-      # Scale approximately by 1/sqrt(2) ~ 3/4 if going diagonal
-      delta = delta.mul(0.75) if delta.x != 0 and delta.y != 0
-      delta = delta.mul(Game.settings.speed / 16)
-      
+    if Game.playerId
       player = Game.entities[Game.playerId]
-      position = Vector.fromArray(player.location.position).add(delta)
-      player.location.position = position.toArray()
-      Request.playerMove(position)
+      
+      if delta.isZero()
+        player.graphic.animating = false
+      else
+        # Scale approximately by 1/sqrt(2) ~ 3/4 if going diagonal
+        delta = delta.mul(0.75) if delta.x != 0 and delta.y != 0
+        delta = delta.mul(Game.settings.speed / 16)
+        
+        position = Vector.fromArray(player.location.position).add(delta)
+        player.location.position = position.toArray()
+        Request.playerMove(position)
+        
+        # Change animation
+        # direction = switch
+        
+        player.graphic.animation = switch
+          when delta.y < 0 then "up"
+          when delta.y > 0 then "down"
+          when delta.x < 0 then "left"
+          when delta.x > 0 then "right"
+        player.graphic.animating = true
