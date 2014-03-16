@@ -23,6 +23,14 @@ class Vector
   
   constructor: (@x=0, @y=0) ->
   
+  # Zerary operators
+  clone: ->
+    new Vector(@x, @y)
+  round: ->
+    new Vector(Math.round(@x), Math.round(@y))
+  floor: ->
+    new Vector(Math.floor(@x), Math.floor(@y))
+  
   # Unary operators
   neg: ->
     new Vector(-@x, -@y)
@@ -30,9 +38,6 @@ class Vector
   # Binary operators
   add: (vec) ->
     new Vector(@x + vec.x, @y + vec.y)
-  addto: (vec) ->
-    @x += vec.x
-    @y += vec.y
   sub: (vec) ->
     new Vector(@x - vec.x, @y - vec.y)
   mul: (a) ->
@@ -40,16 +45,36 @@ class Vector
   div: (a) ->
     new Vector(@x / a, @y / a)
   
-  # Functions
+  # In-place operators
+  addBy: (vec) ->
+    @x += vec.x
+    @y += vec.y
+  mulBy: (a) ->
+    @x *= a
+    @y *= a
+  
+  # Test methods
   isZero: ->
     @x == 0 and @y == 0
+  isEqual: (vec) ->
+    @x == vec.x and @y == vec.y
+  
+  # L0 distance
+  min: ->
+    Math.min(Math.abs(@x), Math.abs(@y))
+  # L1 distance
+  sum: ->
+    @x + @y
+  # L2 distance
   norm: ->
     Math.sqrt(@x*@x + @y*@y)
     # Math.hypot(@x, @y)
+  # L-infinity distance
+  max: ->
+    Math.max(Math.abs(@x), Math.abs(@y))
   normalize: ->
     @div(@norm())
-  round: ->
-    new Vector(Math.round(@x), Math.round(@y))
+  
   toString: ->
     "Vector(#{@x}, #{@y})"
   toArray: ->
@@ -65,5 +90,5 @@ class Rect
     @position.x <= rect.position.x <= @position.x + @size.x - rect.size.x and
       @position.y <= rect.position.y <= @position.y + @size.y - rect.size.y
   overlaps: (rect) ->
-    @position.x - rect.size.x <= rect.position.x <= @position.x + @size.x and
-      @position.y - rect.size.y <= rect.position.y <= @position.y + @size.y
+    @position.x - rect.size.x < rect.position.x < @position.x + @size.x and
+      @position.y - rect.size.y < rect.position.y < @position.y + @size.y

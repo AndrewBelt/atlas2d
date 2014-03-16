@@ -3,6 +3,7 @@ chasz.png:
   grass2: [1, 0]
   water: [2, 0]
   sand: [0, 1]
+  rock: [10, 0]
 van.png:
   player:
     animations:
@@ -12,4 +13,5 @@ van.png:
       right: [[3, 2], [2, 2], [3, 2], [1, 2]]
     delay: 8
     size: [1, 2]
+    offset: [0, 1]
     default: down

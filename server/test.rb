@@ -70,6 +70,10 @@ class Vector
     Vector[yield(@x), yield(@y)]
   end
   
+  def round
+    map &:round
+  end
+  
   def norm
     Math.hypot(@x, @y)
   end
@@ -198,7 +202,7 @@ class Connection
     @ws.send data.to_json
     
     @player = Entity.new
-    @player[:location] = Location.new(Vector[15, 15], 2)
+    @player[:location] = Location.new(Vector[15, 15], 5)
     @player[:graphic] = {
       name: 'player',
       animating: true
@@ -220,9 +224,13 @@ class Connection
   end
   
   def process(data)
-    # TEMP
-    data = data.last
-    
+    data.each do |command|
+      processCommand(command)
+    end
+  end
+  
+  def processCommand(data)
+    # playerMove
     if data['cmd'] == 'playerMove' and @player
       @player[:location].position = Vector.from_a(data['position'])
       
@@ -239,6 +247,7 @@ class Connection
       end
     end
     
+    # chatSend
     if data['cmd'] == 'chatSend'
       text = data['text'].strip
       
@@ -251,6 +260,22 @@ class Connection
           conn.ws.send([{
             cmd: 'chatDisplay',
             text: data['text']
+          }].to_json)
+        end
+      end
+    end
+    
+    # action
+    if data['cmd'] == 'action'
+      position = @player[:location].position.round - Vector[0, -1]
+      entity = Entity.all.find {|e| e != player and e[:location].position == position}
+      if entity
+        entity[:graphic][:name] = 'sand'
+        Connection.all.each do |conn|
+          conn.ws.send([{
+            cmd: 'entityUpdate',
+            id: entity.id,
+            entity: entity
           }].to_json)
         end
       end
@@ -274,15 +299,27 @@ end
 # main.rb
 
 # Create some initial tiles
-30.times do |y|
-  30.times do |x|
+16.times do |y|
+  16.times do |x|
     e = Entity.new
     e[:location] = Location.new(Vector[x, y], 1)
     e[:graphic] = {
-      name: %w{grass grass2 sand}.sample
+      name: 'grass'
     }
     Entity.all << e
   end
+end
+
+64.times do
+  e = Entity.new
+  e[:location] = Location.new(Vector[Random.rand(16), Random.rand(16)], 3)
+  e[:graphic] = {
+    name: 'rock'
+  }
+  e[:physics] = {
+    collides: true
+  }
+  Entity.all << e
 end
 
 # Start the WebSocket server

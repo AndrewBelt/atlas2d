@@ -1,13 +1,11 @@
-html, body {
+* {
   padding: 0;
   margin: 0;
-  width: 100%;
-  height: 100%;
-  
 }
 
-body, html {
-  overflow: hidden;
+html, body {
+  width: 100%;
+  height: 100%;
 }
 
 body, input {
@@ -19,28 +17,31 @@ canvas {
   display: block;
 }
 
-.gui-window {
-  position: fixed;
-  background: white;
-  opacity: 0.75;
+.main {
+  position: absolute;
+  left: 0; right: 0; top: 0; bottom: 0;
+  margin-right: 0;
+  overflow: hidden;
 }
 
-#chat-window {
-  width: 400px;
-  left: 20px;
-  bottom: 20px;
-}
-
-#messages {
-  max-height: 100px;
-  overflow-y: auto;
-}
-
-#messages p {
-  margin: 0;
-}
-
-#message-input {
+.game {
+  position: absolute;
   width: 100%;
-  border: 1px solid black;
+  top: 0; bottom: 0;
+  margin-bottom: 0;
+}
+
+.chat {
+  position: absolute;
+  bottom: 0;
+  height: 0;
+  background: green;
+}
+
+.sidebar {
+  position: absolute;
+  width: 0;
+  right: 0; top: 0; bottom: 0;
+  overflow: auto;
+  background: #964B00;
 }

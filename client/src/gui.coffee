@@ -1,6 +1,4 @@
 
-# jQuery is allowed to be used here.
-
 GUI =
   init: ->
     $('#message-input').keypress (e) ->
@@ -12,7 +10,3 @@ GUI =
   chatDisplay: (text) ->
     $('<p>').text(text).appendTo('#messages')
     $('#messages').scrollTop($('#messages').prop('scrollHeight'));
-
-
-$(document).ready ->
-  GUI.init()

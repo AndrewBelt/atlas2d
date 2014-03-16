@@ -1,18 +1,12 @@
 
-window.onload = ->
+$(document).ready ->
   Game.init()
   
   # AJAX request the tileset data
-  # TEMP
-  tilesetsRequest = new XMLHttpRequest()
-  tilesetsRequest.onreadystatechange = ->
-    if tilesetsRequest.readyState == 4 and tilesetsRequest.status == 200
-      addGraphics(JSON.parse(tilesetsRequest.responseText))
-      Game.run()
-  tilesetsRequest.open('GET', 'assets/tilesets.json', true)
-  tilesetsRequest.send()
+  $.getJSON 'assets/tilesets.json', (data) ->
+    addGraphics(data)
+    Game.run()
   
-  # TEMP
   addGraphics = (data) ->
     for filename, tilesetData of data
       image = new Image()

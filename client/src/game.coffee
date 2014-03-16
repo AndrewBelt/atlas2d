@@ -9,14 +9,15 @@ window.requestAnimationFrame =
 Game =
   settings:
     zoom: 4
-    speed: 1.5 # 15 sanic
+    speed: 2 # 15 sanic
   entities: {}
   graphics: {}
   
   init: ->
-    Communicator.init()
+    Network.init()
     Controller.init()
     Renderer.init()
+    GUI.init()
   run: ->
     @frame = 0
     @requestStep()
@@ -27,13 +28,13 @@ Game =
     # Advance frame and update framerate
     @frame++
     now = new Date()
-    @lastFramerate = 1000 / (now - @lastTime) if @lastTime
+    @lastDelta = (now - @lastTime) / 1000 if @lastTime
     @lastTime = now
     
     Movement.move()
-    Communicator.processCommands()
+    Network.processCommands()
     Renderer.render()
-    Communicator.pushRequests() if @frame % 2 == 0
+    Network.pushRequests() if @frame % 2 == 0
     
     @requestStep()
 
@@ -50,18 +51,19 @@ class Graphic
       
       @delay = data.delay or 1
       @size = if data.size then Vector.fromArray(data.size) else new Vector(1, 1)
+      @offset = if data.offset then Vector.fromArray(data.offset) else new Vector(0, 0)
       @default = data.default
   
   draw: (ctx, pos, graphicData) ->
-    dest = pos.mul(16).round()
-    
     # Mini graphic
     if @coords?
+      dest = pos.mul(16).round()
       ctx.drawImage(@image, @coords.x*16, @coords.y*16, 16, 16,
         dest.x, dest.y, 16, 16)
     
     # Full graphic
     else
+      dest = pos.sub(@offset).mul(16).round()
       animation = @animations[graphicData.animation]
       animation = @animations[@default] unless animation
       # Fail silently if no animation is found

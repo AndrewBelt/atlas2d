@@ -23,6 +23,9 @@ cp 'main.css', 'public/css/'
 puts "Generating Javascript..."
 coffeescripts = %w{
   src/util.coffee
+  src/network.coffee
+  src/controller.coffee
+  src/renderer.coffee
   src/processes.coffee
   src/game.coffee
   src/main.coffee

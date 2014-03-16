@@ -12,9 +12,14 @@
     %script{src: 'js/jquery-2.1.0.min.js'}
     %script{src: 'js/game.js'}
   %body
-    %canvas#main
-    
-    .gui-window#chat-window
-      #messages
-      %div
-        %input#message-input{type: 'text'}
+    .main
+      .game
+        %canvas#game-canvas
+      .chat
+        /%p Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+    .sidebar
+      /%p Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+    / .gui-window#chat-window
+    /   #messages
+    /   %div
+    /     %input#message-input{type: 'text'}
