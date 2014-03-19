@@ -21,7 +21,8 @@ Network =
       console.log("WebSocket error", e)
   
   pushRequests: ->
-    if @ws.readyState == 1 and Request.requestStack.length > 0
+    return unless @ws.readyState == 1
+    if Request.requestStack.length > 0
       json = JSON.stringify(Request.requestStack)
       @ws.send(json)
       console.log("Sent #{json.length} bytes") if @log

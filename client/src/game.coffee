@@ -9,7 +9,7 @@ window.requestAnimationFrame =
 Game =
   settings:
     zoom: 4
-    speed: 2 # 15 sanic
+    speed: 2 # 15 is sanic speed
   entities: {}
   graphics: {}
   
@@ -35,6 +35,7 @@ Game =
     Network.processCommands()
     Renderer.render()
     Network.pushRequests() if @frame % 2 == 0
+    GUI.syncItems() if @frame % 16 == 0
     
     @requestStep()
 

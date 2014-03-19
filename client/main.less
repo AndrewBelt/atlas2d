@@ -1,0 +1,106 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+}
+
+@font-face {
+  font-family: 'munro';
+  src: url('../fonts/munro-webfont.eot');
+  src: url('../fonts/munro-webfont.eot?#iefix') format('embedded-opentype'),
+       url('../fonts/munro-webfont.woff') format('woff'),
+       url('../fonts/munro-webfont.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body, input {
+  font-family: munro, sans-serif;
+  font-size: 24px;
+}
+
+h1 {font-size: 64px}
+h2 {font-size: 48px}
+h3 {font-size: 32px}
+
+input {
+  padding: 4px;
+  font-size: 24px;
+  -webkit-box-sizing: border-box;
+     -moz-box-sizing: border-box;
+          box-sizing: border-box;
+}
+
+canvas {
+  display: block;
+}
+
+.clearfix {
+  clear: both;
+}
+
+/* GUI elements */
+
+#main {
+  position: absolute;
+  top: 0; bottom: 0; left: 0; right: 238px;
+}
+
+#game {
+  background: black;
+}
+
+#message-center {
+  position: absolute;
+  bottom: 20px; left: 20px;
+  width: 600px;
+  opacity: 0.75;
+  
+  #messages {
+    height: 150px;
+    list-style: none;
+    background: white;
+    overflow-y: auto;
+  }
+  
+  #chatbox {
+    margin-top: 8px;
+    background: white;
+    
+    input {
+      width: 100%;
+      border: none;
+    }
+  }
+}
+
+#sidebar {
+  position: absolute;
+  top: 0; bottom: 0; right: 0;
+  width: 238px;
+  background: #897801;
+  
+  #sidebar-container {
+    padding: 16px;
+  }
+}
+
+.canvas-list {
+  margin: -2px;
+  
+  canvas {
+    border: 1px solid black;
+    background: #3d3500;
+    margin: 2px;
+    padding: 2px;
+    float: left;
+    
+    &:hover {
+      opacity: 0.75;
+    }
+  }
+}
