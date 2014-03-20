@@ -8,7 +8,7 @@ window.requestAnimationFrame =
 
 Game =
   settings:
-    zoom: 4
+    zoom: 3
     speed: 2 # 15 is sanic speed
   entities: {}
   graphics: {}
@@ -35,12 +35,16 @@ Game =
     Network.processCommands()
     Renderer.render()
     Network.pushRequests() if @frame % 2 == 0
-    GUI.syncItems() if @frame % 16 == 0
     
     @requestStep()
 
 
 class Graphic
+  @all: {}
+  @draw: (ctx, pos, graphicData) ->
+    graphic = @all[graphicData.name]
+    graphic.draw(ctx, pos, graphicData)
+  
   constructor: (@image, data) ->
     if data instanceof Array
       @coords = Vector.fromArray(data)
@@ -56,15 +60,16 @@ class Graphic
       @default = data.default
   
   draw: (ctx, pos, graphicData) ->
+    dest = pos.round()
+    
     # Mini graphic
     if @coords?
-      dest = pos.mul(16).round()
       ctx.drawImage(@image, @coords.x*16, @coords.y*16, 16, 16,
         dest.x, dest.y, 16, 16)
     
     # Full graphic
     else
-      dest = pos.sub(@offset).mul(16).round()
+      dest = dest.sub(@offset)
       animation = @animations[graphicData.animation]
       animation = @animations[@default] unless animation
       # Fail silently if no animation is found

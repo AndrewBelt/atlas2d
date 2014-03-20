@@ -9,16 +9,16 @@ Network =
     that = @
     
     @ws.onopen = ->
-      console.log("WebSocket opened")
+      GUI.pushMessage("Connected to server", 'info')
     @ws.onmessage = (e) ->
       console.log("Recv #{e.data.length} bytes") if that.log
       commands = JSON.parse(e.data)
       for command in commands
         that.commandStack.push(command)
     @ws.onclose = (e) ->
-      console.log("WebSocket closed")
+      GUI.pushMessage("Disconnected from server", 'info')
     @ws.onerror = (e) ->
-      console.log("WebSocket error", e)
+      GUI.pushMessage("Connection error", 'error')
   
   pushRequests: ->
     return unless @ws.readyState == 1
@@ -59,6 +59,16 @@ Request =
     @push {
       cmd: 'playerMove',
       position: position.toArray()
+    }
+  playerFace: (direction) ->
+    @push {
+      cmd: 'playerFace',
+      direction: direction
+    }
+  playerAnimate: (enabled) ->
+    @push {
+      cmd: 'playerAnimate',
+      enabled: enabled
     }
   chatSend: (text) ->
     @push {

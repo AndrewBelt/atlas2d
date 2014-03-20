@@ -22,24 +22,37 @@ Movement =
         when delta.x > 0 then "right"
       player.graphic.animating = true
       
-      position = Vector.fromArray(player.location.position)
-      
       # Scale approximately by 1/sqrt(2) ~ 3/4 if going diagonal
       delta.mulBy(0.75) if delta.x != 0 and delta.y != 0
       delta.mulBy(Game.settings.speed / 16)
       # Correct due to framerate skew
       delta.mulBy(Math.min(60 * Game.lastDelta, 2))
       
-      playerBox = new Rect(position.add(delta), new Vector(1, 1))
+      position = Vector.fromArray(player.location.position)
+      position.addBy(delta)
+      playerBox = Rect.fromVectors(position, new Vector(1, 1))
       
       # TEMP
       # Collide
       for id, entity of Game.entities
         if entity.physics and entity.physics.collides and entity.location and entity != player
-          entityBox = new Rect(Vector.fromArray(entity.location.position), new Vector(1, 1))
+          entityBox = Rect.fromArrays(entity.location.position, [1, 1])
           if playerBox.overlaps(entityBox)
-            return
+            # Choose the smallest delta which would fix the impending collision
+            # There are four choices for a rectangle-rectangle collision.
+            collisionDeltas = [
+              new Vector(entityBox.x + entityBox.w - playerBox.x, 0),
+              new Vector(entityBox.x - playerBox.w - playerBox.x, 0),
+              new Vector(0, entityBox.y + entityBox.h - playerBox.y),
+              new Vector(0, entityBox.y - playerBox.h - playerBox.y)
+            ]
+            # Find the minimum delta
+            collisionDelta = collisionDeltas.reduce (a, b) ->
+              if a and a.max() < b.max() then a else b
+            
+            playerBox.x += collisionDelta.x
+            playerBox.y += collisionDelta.y
       
       # Commit the movement
-      player.location.position = playerBox.position.toArray()
-      Request.playerMove(playerBox.position)
+      player.location.position = playerBox.position().toArray()
+      Request.playerMove(playerBox.position())

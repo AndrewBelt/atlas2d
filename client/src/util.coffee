@@ -64,7 +64,7 @@ class Vector
     Math.min(Math.abs(@x), Math.abs(@y))
   # L1 distance
   sum: ->
-    @x + @y
+    Math.abs(@x) + Math.abs(@y)
   # L2 distance
   norm: ->
     Math.sqrt(@x*@x + @y*@y)
@@ -82,13 +82,23 @@ class Vector
 
 
 class Rect
-  constructor: (@position, @size) ->
+  @fromVectors: (position, size) ->
+    new Rect(position.x, position.y, size.x, size.y)
+  @fromArrays: (position, size) ->
+    new Rect(position[0], position[1], size[0], size[1])
+  
+  constructor: (@x, @y, @w, @h) ->
+  position: ->
+    new Vector(@x, @y)
+  size: ->
+    new Vector(@w, @h)
+  
   contains: (vec) ->
-    @position.x <= vec.x <= @position.x + @size.x and
-      @position.y <= vec.y <= @position.y + @size.y
+    @x <= vec.x <= @x + @w and
+      @y <= vec.y <= @y + @h
   includes: (rect) ->
-    @position.x <= rect.position.x <= @position.x + @size.x - rect.size.x and
-      @position.y <= rect.position.y <= @position.y + @size.y - rect.size.y
+    @x <= rect.x <= @x + @w - rect.w and
+      @y <= rect.y <= @y + @h - rect.h
   overlaps: (rect) ->
-    @position.x - rect.size.x < rect.position.x < @position.x + @size.x and
-      @position.y - rect.size.y < rect.position.y < @position.y + @size.y
+    @x - rect.w < rect.x < @x + @w and
+      @y - rect.h < rect.y < @y + @h

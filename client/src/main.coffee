@@ -14,4 +14,4 @@ $(document).ready ->
       
       for graphicName, graphicData of tilesetData
         graphic = new Graphic(image, graphicData)
-        Game.graphics[graphicName] = graphic
+        Graphic.all[graphicName] = graphic

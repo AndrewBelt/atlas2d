@@ -19,17 +19,12 @@ html, body {
 }
 
 body, input {
-  font-family: munro, sans-serif;
-  font-size: 24px;
+  font-family: monospace;
+  font-size: 14px;
 }
-
-h1 {font-size: 64px}
-h2 {font-size: 48px}
-h3 {font-size: 32px}
 
 input {
   padding: 4px;
-  font-size: 24px;
   -webkit-box-sizing: border-box;
      -moz-box-sizing: border-box;
           box-sizing: border-box;
@@ -47,7 +42,7 @@ canvas {
 
 #main {
   position: absolute;
-  top: 0; bottom: 0; left: 0; right: 238px;
+  top: 0; bottom: 0; left: 0; right: 0;
 }
 
 #game {
@@ -57,14 +52,14 @@ canvas {
 #message-center {
   position: absolute;
   bottom: 20px; left: 20px;
-  width: 600px;
+  width: 400px;
   opacity: 0.75;
   
   #messages {
-    height: 150px;
+    max-height: 150px;
     list-style: none;
-    background: white;
     overflow-y: auto;
+    color: white;
   }
   
   #chatbox {
@@ -78,29 +73,11 @@ canvas {
   }
 }
 
-#sidebar {
-  position: absolute;
-  top: 0; bottom: 0; right: 0;
-  width: 238px;
-  background: #897801;
-  
-  #sidebar-container {
-    padding: 16px;
-  }
-}
 
-.canvas-list {
-  margin: -2px;
-  
-  canvas {
-    border: 1px solid black;
-    background: #3d3500;
-    margin: 2px;
-    padding: 2px;
-    float: left;
-    
-    &:hover {
-      opacity: 0.75;
-    }
-  }
-}
+// Colors
+
+.chat    {color: yellow;}
+.debug   {color: grey;}
+.info    {color: blue;}
+.warning {color: orange;}
+.error   {color: red;}

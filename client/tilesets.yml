@@ -13,5 +13,5 @@ van.png:
       right: [[3, 2], [2, 2], [3, 2], [1, 2]]
     delay: 8
     size: [1, 2]
-    offset: [0, 1]
+    offset: [0, 16]
     default: down

@@ -1,6 +1,8 @@
 
 Renderer =
   init: ->
+    @inventoryVisible = false
+    
     @canvas = $('#game')[0]
     that = @
     $(window).resize ->
@@ -16,6 +18,7 @@ Renderer =
     @ctx.mozImageSmoothingEnabled = false
     @ctx.webkitImageSmoothingEnabled = false
     
+    # Dimensions of the viewport in tiles
     @viewportSize = new Vector(@canvas.width, @canvas.height).
       div(16 * Game.settings.zoom)
   
@@ -28,8 +31,9 @@ Renderer =
       @ctx.clearRect(0, 0, @canvas.width, @canvas.height)
       @ctx.scale(Game.settings.zoom, Game.settings.zoom)
       
-      # @renderMap()
-      # @renderFramerate()
+      @renderMap()
+      @renderFramerate()
+      @renderInventory() if @inventoryVisible
     finally
       @ctx.restore()
   
@@ -40,20 +44,19 @@ Renderer =
       center = if Game.playerId
         player = Game.entities[Game.playerId]
         position = Vector.fromArray(player.location.position)
-        position.addBy(new Vector(0.5, 0.5))
+        position.add(new Vector(0.5, 0.5))
       else
         new Vector()
-      viewport = new Rect(center.sub(@viewportSize.div(2)), @viewportSize)
+      viewport = Rect.fromVectors(center.sub(@viewportSize.div(2)), @viewportSize)
       
       # Draw entities
       drawables = @getDrawables()
       for id, drawable of drawables
-        box = new Rect(Vector.fromArray(drawable.location.position), new Vector(1, 1))
+        box = Rect.fromArrays(drawable.location.position, [1, 1])
         # Only draw the drawable if it will display on the screen
         if viewport.overlaps(box)
-          position = box.position.sub(viewport.position)
-          graphic = Game.graphics[drawable.graphic.name]
-          graphic.draw(@ctx, position, drawable.graphic)
+          position = box.position().sub(viewport.position()).mul(16)
+          Graphic.draw(@ctx, position, drawable.graphic)
     finally
       @ctx.restore()
   
@@ -68,6 +71,22 @@ Renderer =
       @ctx.fillStyle = 'black'
       @ctx.font = '4px monospace'
       @ctx.fillText(fps.toFixed(2), 1, 3)
+    finally
+      @ctx.restore()
+  
+  renderInventory: ->
+    try
+      @ctx.save()
+      
+      @ctx.fillStyle = 'orange'
+      @ctx.fillRect(0, 0, 16*4, 16*4)
+      
+      index = 0
+      for id, entity of Game.entities
+        if entity.possession and entity.possession.owner == 0
+          position = new Vector(index % 4, Math.floor(index / 4)).mul(16)
+          Graphic.draw(@ctx, position, entity.graphic)
+          index++
     finally
       @ctx.restore()
   
