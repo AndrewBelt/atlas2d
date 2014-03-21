@@ -46,7 +46,7 @@ Network =
     playerSet: (args) ->
       Game.playerId = args.id
     chatDisplay: (args) ->
-      GUI.chatDisplay(args.text)
+      GUI.pushMessage(args.text, 'chat')
 
 
 Request =
@@ -75,7 +75,8 @@ Request =
       cmd: 'chatSend',
       text: text
     }
-  action: () ->
+  action: (position) ->
     @push {
-      cmd: 'action'
+      cmd: 'action',
+      position: position.toArray()
     }

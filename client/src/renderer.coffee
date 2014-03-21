@@ -32,7 +32,7 @@ Renderer =
       @ctx.scale(Game.settings.zoom, Game.settings.zoom)
       
       @renderMap()
-      @renderFramerate()
+      # @renderFramerate()
       @renderInventory() if @inventoryVisible
     finally
       @ctx.restore()
@@ -77,6 +77,7 @@ Renderer =
   renderInventory: ->
     try
       @ctx.save()
+      @ctx.translate(16*4, 16*4)
       
       @ctx.fillStyle = 'orange'
       @ctx.fillRect(0, 0, 16*4, 16*4)

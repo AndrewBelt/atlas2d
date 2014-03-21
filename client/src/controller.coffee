@@ -22,6 +22,7 @@ Controller =
   
   checkKey: (key) ->
     switch key
+      when 16 # shift
+        Renderer.inventoryVisible ^= true
       when 32 # space
-        # TEMP
         Request.action()

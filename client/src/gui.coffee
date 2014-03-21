@@ -7,8 +7,7 @@ GUI =
         text = $(this).val()
         $(this).val('')
         if text
-          GUI.pushMessage(text, 'chat')
-          # Request.chatSend(text)
+          Request.chatSend(text)
   
   pushMessage: (text, type) ->
     li = $('<li>').text(text).attr('class', type)
