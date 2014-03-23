@@ -70,13 +70,12 @@ Request =
       cmd: 'playerAnimate',
       enabled: enabled
     }
+  playerAction: () ->
+    @push {
+      cmd: 'playerAction'
+    }
   chatSend: (text) ->
     @push {
       cmd: 'chatSend',
       text: text
-    }
-  action: (position) ->
-    @push {
-      cmd: 'action',
-      position: position.toArray()
     }

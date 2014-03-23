@@ -8,6 +8,7 @@ GUI =
         $(this).val('')
         if text
           Request.chatSend(text)
+          $('#chat-input').blur()
   
   pushMessage: (text, type) ->
     li = $('<li>').text(text).attr('class', type)

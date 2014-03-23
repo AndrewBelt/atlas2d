@@ -22,7 +22,10 @@ Controller =
   
   checkKey: (key) ->
     switch key
+      when 13 # enter
+        $('#chat-input').focus()
       when 16 # shift
-        Renderer.inventoryVisible ^= true
+        # Renderer.inventoryVisible ^= true
+        'pass'
       when 32 # space
-        Request.action()
+        Request.playerAction()

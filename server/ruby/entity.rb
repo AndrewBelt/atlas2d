@@ -33,11 +33,11 @@ module Entity
       return id
     end
     
-    def update(id, entity_diff)
+    def update(id, entity_diff, player_id=nil)
       # Deep merge existing entity
       entity = @all.fetch(id)
       entity.deep_merge!(entity_diff)
-      Connection.broadcast({cmd: 'entityUpdate', id: id, entity: entity_diff})
+      Connection.broadcast({cmd: 'entityUpdate', id: id, entity: entity_diff}, player_id)
     end
     
     def delete(id)

@@ -9,14 +9,16 @@ class Connection
   class << self
     attr_reader :all
     
-    def broadcast(command)
+    def broadcast(command, player_id=nil)
       @all.each do |connection|
+        next if player_id and connection.player_id == player_id
         connection.sendCommand(command)
       end
     end
   end
   
-  attr_reader :subscriptions # Entity IDs
+  attr_reader :player_id # ID
+  attr_reader :subscriptions # [ID]
   
   def initialize(ws)
     @subscriptions = Set.new
@@ -29,7 +31,7 @@ class Connection
     end
     
     ws.onmessage do |msg|
-      process(JSON.parse(msg))
+      process(JSON.parse(msg, symbolize_names: true))
     end
     
     ws.onclose do
@@ -70,9 +72,9 @@ class Connection
   
   def process(data)
     data.each do |command|
-      runnable = Command[command['cmd']]
+      runnable = Command[command[:cmd]]
       next unless runnable
-      command.delete('cmd')
+      command.delete(:cmd)
       instance_exec(command, &runnable)
     end
   end

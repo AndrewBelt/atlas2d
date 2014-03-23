@@ -8,7 +8,7 @@ Utils =
       if !value?
         delete dest[key]
       # Deep copy Objects (including Arrays)
-      else if deep and value instanceof Object
+      else if deep and value instanceof Object and dest[key]
         dest[key].length = value.length if value instanceof Array
         @merge(dest[key], value, true)
       else
