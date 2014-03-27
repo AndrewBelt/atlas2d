@@ -25,4 +25,5 @@ Finally, navigate to [localhost:8000](http://localhost:8000) to try out the game
 ## Authors
 
 - [Andrew Belt](https://github.com/AndrewBelt)
+- [Marviel](https://github.com/Marviel)
 - your-name-here

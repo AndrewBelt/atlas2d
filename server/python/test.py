@@ -12,7 +12,7 @@ class AtlasProtocol(autobahn.twisted.websocket.WebSocketServerProtocol):
   def onOpen(self):
     print("WebSocket connection open.")
     player = {
-      'entity': {
+      'graphic': {
         'name': 'player'
       }
     }
