@@ -1,7 +1,6 @@
 
 # Atlas 2D Client-Server API
-
-
+This document provides the second most up to date description of the data structures used on the client and server (the first being the source code).
 
 ## Definitions
 These are structures that are referred to by name in this document.
