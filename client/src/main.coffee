@@ -3,7 +3,7 @@ $(document).ready ->
   Game.init()
   
   # AJAX request the tileset data
-  $.getJSON 'assets/tilesets.json', (data) ->
+  $.getJSON '/tilesets.json', (data) ->
     addGraphics(data)
     Game.run()
   
