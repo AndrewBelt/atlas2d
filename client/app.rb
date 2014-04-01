@@ -10,6 +10,7 @@ require 'yaml'
 
 set :public_folder, './static'
 set :views, '.'
+set :bind, '0.0.0.0'
 set :port, 3000
 
 
