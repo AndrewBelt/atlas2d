@@ -1,3 +1,6 @@
+require 'rubygems'
+require 'bundler/setup'
+
 require 'sinatra'
 require 'haml'
 require 'less'
@@ -7,6 +10,7 @@ require 'yaml'
 
 set :public_folder, './static'
 set :views, '.'
+set :port, 3000
 
 
 COFFEESCRIPTS = %w{
@@ -30,8 +34,7 @@ get '/game.css' do
 end
 
 get '/game.js' do
-  src = COFFEESCRIPTS.collect {|file| IO.read(file) }.join
-  coffee src
+  coffee COFFEESCRIPTS.collect {|file| IO.read(file)}.join
 end
 
 get '/tilesets.json' do

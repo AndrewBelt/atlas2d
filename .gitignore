@@ -1,2 +1,3 @@
 
-client/public
+Gemfile.lock
+.DS_Store

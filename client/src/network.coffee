@@ -4,7 +4,7 @@ Network =
   commandStack: []
   
   init: ->
-    url = "ws://#{window.location.hostname}:8080/"
+    url = "ws://#{window.location.hostname}:3001/"
     @ws = new WebSocket(url)
     that = @
     

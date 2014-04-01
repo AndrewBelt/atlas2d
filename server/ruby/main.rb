@@ -26,7 +26,7 @@ require 'em-websocket'
 
 # Start the WebSocket server
 EventMachine::run do
-  EventMachine::WebSocket.run(host: '0.0.0.0', port: 8080) do |ws|
+  EventMachine::WebSocket.run(host: '0.0.0.0', port: 3001) do |ws|
     connection = Connection.new(ws)
   end
 end
