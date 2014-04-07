@@ -43,6 +43,7 @@ class Connection
   
   def connect
     # Send all the existing entities to the new player
+    # (Question: Couldn't this^ make the game quite vulnerable to global visibility hacks?)
     commands = []
     Entity.all.each do |id, entity|
       commands << {cmd: 'entityCreate', id: id, entity: entity}
@@ -58,10 +59,22 @@ class Connection
       graphic: {
         name: 'player'
       }
+      skills: {
+        #skillName: skillLevel
+        woodworking: 20
+      }
+      gems: {
+        #gemName: gemLevel
+        earth: 34
+        fire: 0
+      }
     })
     
     # Set player
     sendCommand({cmd: 'playerSet', id: @player_id})
+
+    # Send welcome message
+    sendCommand({cmd: 'chatDisplay', text: 'You are now connected to Atlas 2d!'})
   end
   
   # Logs the player out and cleans up the Connection for deletion

@@ -1,0 +1,10 @@
+-"events" such as items that deprecate with time passing.
+    -These could be how I handle the evolution of terrain, as well as
+      the crucial deprecation of gems.
+-Should each entity have a "type"? Currently the only way I know whether or not something is sand or a rock is by looking at its graphic.name property.
+-Landscape generation algorithms
+-Loading surrounding landscape to client?
+    -Should we *really* send the client all existing items? If not; what do we send?
+-##Learn about databases to use!
+    -Talk to Vortico
+
