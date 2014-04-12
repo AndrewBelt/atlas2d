@@ -7,39 +7,21 @@ LOG.level = Logger::DEBUG
 require './connection'
 require './entity'
 
-# Initialize landscape
-# TODO: Landscape generation algorithms
-10.times do |y|
-  10.times do |x|
-    Entity.create({
-      location: {
-        position: [x, y],
-        layer: 1
-      },
-      graphic: {
-        name: 'sand'
-      }
-    })
-  end
-end
+# Connect to MongoDB
+require 'mongo'
+mongo = Mongo::MongoClient.new('localhost', 27017)
+db = mongo.db('atlas')
+Entity.collection = db['entities']
 
-#Create non-landscape entity with an event
+# TEMP
+# Initialize entity database
+Entity.collection.drop
 Entity.create({
-  location: {
-    position: [1, 1],
-    layer: 2
-  },
-  graphic: {
-    name: 'campfire'
-  }
-  events: [
-    {
-      #TODO should delete all events after they run, unless they are recurring.
-      name: 'burnout'
-      interval: 10 #seconds
-    }
-  ]
+  location: {position: [0, 0], layer: 1},
+  graphic: {name: 'sand'},
+  physics: {collides: true}
 })
+
 
 require 'em-websocket'
 

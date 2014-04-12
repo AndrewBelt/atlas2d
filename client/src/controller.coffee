@@ -5,6 +5,9 @@ Controller =
     @pressedKeys = {}
     that = @
     
+    # TODO
+    # Disallow keyboard input when #chat-input is focused
+    
     $(window).keydown (e) ->
       that.pressedKeys[e.keyCode] = true
       that.checkKey(e.keyCode)
@@ -25,7 +28,6 @@ Controller =
       when 13 # enter
         $('#chat-input').focus()
       when 16 # shift
-        # Renderer.inventoryVisible ^= true
-        'pass'
+        Renderer.inventoryVisible ^= true
       when 32 # space
         Request.playerAction()

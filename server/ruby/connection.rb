@@ -1,24 +1,17 @@
 require 'set'
 require 'json'
 require './entity'
-require './commands'
+require './requests'
 
 class Connection
   @all = Set.new
   
   class << self
     attr_reader :all
-    
-    def broadcast(command, player_id=nil)
-      @all.each do |connection|
-        next if player_id and connection.player_id == player_id
-        connection.sendCommand(command)
-      end
-    end
   end
   
-  attr_reader :player_id # ID
   attr_reader :subscriptions # [ID]
+  attr_reader :player_id # ID
   
   def initialize(ws)
     @subscriptions = Set.new
@@ -31,7 +24,7 @@ class Connection
     end
     
     ws.onmessage do |msg|
-      process(JSON.parse(msg, symbolize_names: true))
+      process_requests(JSON.parse(msg))
     end
     
     ws.onclose do
@@ -42,39 +35,43 @@ class Connection
   end
   
   def connect
-    # Send all the existing entities to the new player
+    # TEMP
+    # Subscribe to existing entities
     # (Question: Couldn't this^ make the game quite vulnerable to global visibility hacks?)
-    commands = []
-    Entity.all.each do |id, entity|
-      commands << {cmd: 'entityCreate', id: id, entity: entity}
+    # Answer: Yes.
+    Entity.collection.find.each do |entity|
+      subscribe(entity['_id'])
     end
-    sendCommands(commands)
     
+    # TEMP
     # Create player
     @player_id = Entity.create({
       location: {
-        position: [0, 0],
+        position: [0, -1],
         layer: 2
       },
       graphic: {
         name: 'player'
-      }
+      },
       skills: {
         #skillName: skillLevel
         woodworking: 20
-      }
+      },
       gems: {
         #gemName: gemLevel
-        earth: 34
+        earth: 34,
         fire: 0
       }
     })
     
-    # Set player
-    sendCommand({cmd: 'playerSet', id: @player_id})
-
     # Send welcome message
-    sendCommand({cmd: 'chatDisplay', text: 'You are now connected to Atlas 2d!'})
+    push_command({cmd: 'chatDisplay', text: 'You are now connected to Atlas 2d!'})
+    
+    # Set player
+    Connection.all.each do |conn|
+      conn.subscribe(@player_id)
+    end
+    push_command({cmd: 'playerSet', id: @player_id.to_s})
   end
   
   # Logs the player out and cleans up the Connection for deletion
@@ -83,32 +80,42 @@ class Connection
     Entity.delete(@player_id) if @player_id
   end
   
-  def process(data)
-    data.each do |command|
-      runnable = Command[command[:cmd]]
+  # Add the id to the subscriptions list
+  # and create the entity on the client
+  def subscribe(id)
+    # TEMP
+    # The database shouldn't be queried one at a time.
+    entity = Entity.collection.find_one({'_id' => id})
+    return unless entity
+    
+    entity.delete('_id')
+    push_command({cmd: 'entityCreate', id: id.to_s, entity: entity})
+    @subscriptions.add(id)
+  end
+  
+  # Remove the id from the subscriptions list
+  # and delete the entity from the client
+  def unsubscribe(id)
+    push_command({cmd: 'entityDelete', id: id.to_s})
+    @subscriptions.delete(id)
+  end
+  
+  def process_requests(requests)
+    requests.each do |request|
+      runnable = Request[request['cmd']]
       next unless runnable
-      command.delete(:cmd)
-      instance_exec(command, &runnable)
+      request.delete(:cmd)
+      instance_exec(request, &runnable)
     end
   end
   
   # Sends a single command to the client
-  def sendCommand(command)
+  def push_command(command)
+    # TEMP
+    # Send the data immediately
     @ws.send([command].to_json)
-  end
-  
-  # Sends an array of commands in batch
-  def sendCommands(commands)
-    @ws.send(commands.to_json)
-  end
-  
-  # TODO
-  # Subscriptions not supported yet
-  def subscribe(id)
-    @subscriptions.add(id)
-  end
-  
-  def unsubscribe(id)
-    @subscriptions.delete(id)
+    
+    # TODO
+    # Send the data once the command is finished
   end
 end

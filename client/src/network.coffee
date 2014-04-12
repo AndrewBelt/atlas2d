@@ -40,7 +40,15 @@ Network =
     entityCreate: (args) ->
       Game.entities[args.id] = args.entity
     entityUpdate: (args) ->
-      Utils.merge(Game.entities[args.id], args.entity, true)
+      entity = Game.entities[args.id]
+      console.log(args)
+      if args.set
+        for key, value of args.set
+          Utils.set(entity, key, value)
+      if args.unset
+        for key, value of args.unset
+          Utils.unset(entity, key, value)
+    
     entityDelete: (args) ->
       delete Game.entities[args.id]
     playerSet: (args) ->

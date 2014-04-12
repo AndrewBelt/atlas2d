@@ -14,6 +14,21 @@ Utils =
       else
         dest[key] = value
     dest
+  
+  set: (hash, key, value) ->
+    keys = key.split('.', 2)
+    if keys.length == 1
+      hash[keys[0]] = value
+    else
+      @set(hash[keys[0]], keys[1], value)
+    console.log(hash, keys, value)
+  
+  unset: (hash, key) ->
+    keys = key.split('.', 2)
+    if keys.length == 1
+      delete hash[keys[0]]
+    else
+      @unset(hash[keys[0]], keys[1], value)
 
 # Math
 

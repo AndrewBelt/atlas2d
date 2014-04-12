@@ -1,48 +1,37 @@
 
-class Hash
-  def deep_merge!(other)
-    other.each do |key, value|
-      if value.nil?
-        # Delete nil values
-        self.delete(key)
-      elsif value.is_a?(Hash) and self[key].is_a?(Hash)
-        # Recursively merge the two hash values
-        self[key].deep_merge!(value)
-      else
-        # Overwrite the scalar directly
-        self[key] = value
-      end
-    end
-  end
-end
-
-
 module Entity
-  # id => Hash
-  @all = {}
-  @last_id = 0
-  
   class << self
-    attr_reader :all
+    attr_accessor :collection
     
     def create(entity)
-      @last_id += 1
-      id = @last_id
-      @all[id] = entity
-      Connection.broadcast({cmd: 'entityCreate', id: id, entity: entity})
-      return id
+      return @collection.insert(entity)
     end
     
-    def update(id, entity_diff, player_id=nil)
-      # Deep merge existing entity
-      entity = @all.fetch(id)
-      entity.deep_merge!(entity_diff)
-      Connection.broadcast({cmd: 'entityUpdate', id: id, entity: entity_diff}, player_id)
+    # Set and unset hashes should look like
+    # {'location.position' => [1, 2]}
+    def update(id, set=nil, unset=nil)
+      update_op = {}
+      update_op['$set'] = set if set
+      update_op['$unset'] = unset if unset
+      @collection.update({'_id' => id}, update_op)
+      
+      # Submit the client command
+      command = {cmd: 'entityUpdate', id: id.to_s}
+      command['set'] = set if set
+      command['unset'] = unset if unset
+      
+      Connection.all.each do |conn|
+        if conn.subscriptions.include?(id)
+          conn.push_command(command)
+        end
+      end
     end
     
     def delete(id)
-      @all.delete(id)
-      Connection.broadcast({cmd: 'entityDelete', id: id})
+      @collection.remove({'_id' => id})
+      
+      # TODO
+      # Submit the client command
     end
   end
 end

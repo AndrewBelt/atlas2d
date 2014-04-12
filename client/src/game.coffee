@@ -60,16 +60,14 @@ class Graphic
       @default = data.default
   
   draw: (ctx, pos, graphicData) ->
-    dest = pos.round()
-    
     # Mini graphic
     if @coords?
       ctx.drawImage(@image, @coords.x*16, @coords.y*16, 16, 16,
-        dest.x, dest.y, 16, 16)
+        pos.x, pos.y, 16, 16)
     
     # Full graphic
     else
-      dest = dest.sub(@offset)
+      pos = pos.sub(@offset)
       animation = @animations[graphicData.animation]
       animation = @animations[@default] unless animation
       # Fail silently if no animation is found
@@ -87,4 +85,4 @@ class Graphic
       
       size = @size.mul(16)
       ctx.drawImage(@image, source.x, source.y, size.x, size.y,
-        dest.x, dest.y, size.x, size.y)
+        pos.x, pos.y, size.x, size.y)

@@ -55,7 +55,7 @@ Renderer =
         box = Rect.fromArrays(drawable.location.position, [1, 1])
         # Only draw the drawable if it will display on the screen
         if viewport.overlaps(box)
-          position = box.position().sub(viewport.position()).mul(16)
+          position = box.position().sub(viewport.position()).mul(16).round()
           Graphic.draw(@ctx, position, drawable.graphic)
     finally
       @ctx.restore()
