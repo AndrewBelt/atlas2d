@@ -11,6 +11,7 @@ GUI =
           $('#chat-input').blur()
   
   pushMessage: (text, type) ->
+    return unless text
     li = $('<li>').text(text).attr('class', type)
     li.appendTo('#messages')
     $('#messages').scrollTop($('#messages').prop('scrollHeight'));

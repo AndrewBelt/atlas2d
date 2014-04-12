@@ -10,15 +10,21 @@ module Entity
     # Set and unset hashes should look like
     # {'location.position' => [1, 2]}
     def update(id, set=nil, unset=nil)
-      update_op = {}
-      update_op['$set'] = set if set
-      update_op['$unset'] = unset if unset
+      update_op = {
+        '$set' => set,
+        '$unset' => unset
+      }
+      update_op.keep_if {|k, v| v}
       @collection.update({'_id' => id}, update_op)
       
       # Submit the client command
-      command = {cmd: 'entityUpdate', id: id.to_s}
-      command['set'] = set if set
-      command['unset'] = unset if unset
+      command = {
+        cmd: 'entityUpdate',
+        id: id.to_s,
+        set: set,
+        unset: unset
+      }
+      command.keep_if {|k, v| v}
       
       Connection.all.each do |conn|
         if conn.subscriptions.include?(id)
@@ -30,8 +36,13 @@ module Entity
     def delete(id)
       @collection.remove({'_id' => id})
       
-      # TODO
       # Submit the client command
+      command = {cmd: 'entityDelete', id: id}
+      Connection.all.each do |conn|
+        if conn.subscriptions.include?(id)
+          conn.push_command(command)
+        end
+      end
     end
   end
 end

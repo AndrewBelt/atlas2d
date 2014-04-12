@@ -16,7 +16,7 @@ Network =
       for command in commands
         that.commandStack.push(command)
     @ws.onclose = (e) ->
-      GUI.pushMessage("Disconnected from server", 'info')
+      GUI.pushMessage("Disconnected from server", 'error')
     @ws.onerror = (e) ->
       GUI.pushMessage("Connection error", 'error')
   
@@ -86,4 +86,8 @@ Request =
     @push {
       cmd: 'chatSend',
       text: text
+    }
+  login: ->
+    @push {
+      cmd: 'login'
     }
