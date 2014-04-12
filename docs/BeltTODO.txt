@@ -1,0 +1,22 @@
+
+## Server problems
+
+Do we even need a database?
+- As with Atlas1D, we could load all entities from a marshalled file,
+  and save when we are finished, so all of the entities stay in memory.
+
+Should any information in an entity be private to the client?
+- I want to say no, since entities should contain as little data as possible.
+
+How should the "identity" of graphics be held?
+- I think tiles and items should use the same key for its icon.
+
+
+## Client problems
+
+Use 16x16 chunks instead of individual tiles?
+
+Send a player movement command only when the player moves from one tile
+to the next?
+- Sending only integer coordinates, and less often would reduce bandwidth.
+- Mobs must have extrapolated movement on the client.
