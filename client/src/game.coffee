@@ -19,6 +19,8 @@ Game =
     Renderer.init()
     GUI.init()
   run: ->
+    Request.login()
+    
     @frame = 0
     @requestStep()
   requestStep: ->
