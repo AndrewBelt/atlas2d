@@ -5,6 +5,11 @@
 -Landscape generation algorithms
 -Loading surrounding landscape to client?
     -Should we *really* send the client all existing items? If not; what do we send?
--##Learn about databases to use!
-    -Talk to Vortico
+-##Learn about databases
+    
+-Crafting!!!
+-Graceful Error Handling/Logging
+-Demo by Thursday
+-
 
+ http://doduo-8281.use1.nitrousbox.com:3000/

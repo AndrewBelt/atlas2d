@@ -84,7 +84,7 @@ Renderer =
       
       index = 0
       for id, entity of Game.entities
-        if entity.possession and entity.possession.owner == 0
+        if entity.possession and entity.possession.owner == Game.playerId
           position = new Vector(index % 4, Math.floor(index / 4)).mul(16)
           Graphic.draw(@ctx, position, entity.graphic)
           index++

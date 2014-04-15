@@ -32,7 +32,8 @@ Request.add 'login' do |args|
   @player_id = Entity.create({
     location: {
       position: [0, -1],
-      layer: 2
+      layer: 2,
+      facing: 's'
     },
     graphic: {
       name: 'player'
@@ -71,19 +72,32 @@ end
 Request.add 'chatSend' do |args|
   text = args['text']
   LOG.debug "Player said: \"#{text}\""
+  Connection.broadcast({cmd: 'chatDisplay', text: text})
   if text == 'LOL'
     rock = {
-      owner: {id: @player_id.to_s},
+      possessions: { owner: @player_id.to_s },
       graphic: { name: 'rock'}
     }
     id = Entity.create(rock)
     subscribe(id)
     Connection.broadcast({cmd: 'chatDisplay', text: rock.to_s})
   end
-    
-  Connection.broadcast({cmd: 'chatDisplay', text: text})
+  
+  if text == 'Inventory'
+    items = Entity.collection.find({"possessions.owner" => @player_id.to_s})
+    for item in items do
+      Connection.broadcast({cmd: 'chatDisplay', text: item.to_s})
+    end
+  end
 end
 
 
 Request.add 'playerAction' do |args|
+  #TODO
+  #player = Entity.collection.find({'id' => @player_id.to_s})[0]
+  #Entity.collection.find({"location.position" =>
+  
+end
+
+Request.add 'craftItems' do |args|
 end
