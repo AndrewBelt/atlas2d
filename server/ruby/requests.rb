@@ -71,6 +71,16 @@ end
 Request.add 'chatSend' do |args|
   text = args['text']
   LOG.debug "Player said: \"#{text}\""
+  if text == 'LOL'
+    rock = {
+      owner: {id: @player_id.to_s},
+      graphic: { name: 'rock'}
+    }
+    id = Entity.create(rock)
+    subscribe(id)
+    Connection.broadcast({cmd: 'chatDisplay', text: rock.to_s})
+  end
+    
   Connection.broadcast({cmd: 'chatDisplay', text: text})
 end
 
