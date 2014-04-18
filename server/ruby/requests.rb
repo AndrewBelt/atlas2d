@@ -22,7 +22,7 @@ Request.add 'login' do |args|
   # TEMP
   # Subscribe to existing entities
   # (Question: Couldn't this^ make the game quite vulnerable to global visibility hacks?)
-  # Answer: Yup. We need to add more advanced entity subscription algorithms.
+  # Answer: Yup. We need to add more advanced entity subscription processes.
   Entity.collection.find.each do |entity|
     subscribe(entity['_id'])
   end
@@ -32,8 +32,7 @@ Request.add 'login' do |args|
   @player_id = Entity.create({
     location: {
       position: [0, -1],
-      layer: 2,
-      facing: 's'
+      layer: 2
     },
     graphic: {
       name: 'player'
@@ -65,7 +64,16 @@ end
 
 Request.add 'playerMove' do |args|
   position = args['position']
-  Entity.update(@player_id, {'location.position' => position})
+  p position
+  Entity.update(@player_id, set: {'location.position' => position},
+    exclude: self)
+end
+
+
+Request.add 'playerFace' do |args|
+  direction = args['direction']
+  Entity.update(@player_id, set: {'graphic.animation' => direction},
+    exclude: self)
 end
 
 
@@ -73,6 +81,7 @@ Request.add 'chatSend' do |args|
   text = args['text']
   LOG.debug "Player said: \"#{text}\""
   Connection.broadcast({cmd: 'chatDisplay', text: text})
+  
   if text == 'LOL'
     rock = {
       possessions: { owner: @player_id.to_s },
@@ -83,21 +92,17 @@ Request.add 'chatSend' do |args|
     Connection.broadcast({cmd: 'chatDisplay', text: rock.to_s})
   end
   
-  if text == 'Inventory'
-    items = Entity.collection.find({"possessions.owner" => @player_id.to_s})
-    for item in items do
-      Connection.broadcast({cmd: 'chatDisplay', text: item.to_s})
-    end
-  end
+  # if text == 'Inventory'
+  #   items = Entity.collection.find({"possessions.owner" => @player_id.to_s})
+  #   for item in items do
+  #     Connection.broadcast({cmd: 'chatDisplay', text: item.to_s})
+  #   end
+  # end
 end
 
 
 Request.add 'playerAction' do |args|
-  #TODO
-  #player = Entity.collection.find({'id' => @player_id.to_s})[0]
-  #Entity.collection.find({"location.position" =>
-  
 end
 
-Request.add 'craftItems' do |args|
+Request.add 'craft' do |args|
 end

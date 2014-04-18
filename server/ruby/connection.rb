@@ -59,7 +59,7 @@ class Connection
   # and create the entity on the client
   def subscribe(id)
     entity = Entity.collection.find_one({'_id' => id})
-    return unless entity
+    raise "Entity '#{id}' not found" unless entity
     
     entity.delete('_id')
     push_command({cmd: 'entityCreate', id: id.to_s, entity: entity})

@@ -24,37 +24,42 @@ Network =
     return unless @ws.readyState == 1
     if Request.requestStack.length > 0
       json = JSON.stringify(Request.requestStack)
+      console.log(json)
       @ws.send(json)
       console.log("Sent #{json.length} bytes") if @log
       Request.requestStack.length = 0
   
   processCommands: ->
     while args = @commandStack.shift()
-      command = @commands[args.cmd]
+      command = Command[args.cmd]
       throw "'#{args.cmd}' is not a command" unless command
       delete args.cmd
       command(args)
+
+
+Command =
+  ### Commands (server --> client) ###
   
-  ## Commands (server --> client)
-  commands:
-    entityCreate: (args) ->
-      Game.entities[args.id] = args.entity
-    entityUpdate: (args) ->
-      entity = Game.entities[args.id]
-      console.log(args)
-      if args.set
-        for key, value of args.set
-          Utils.set(entity, key, value)
-      if args.unset
-        for key, value of args.unset
-          Utils.unset(entity, key, value)
-    
-    entityDelete: (args) ->
-      delete Game.entities[args.id]
-    playerSet: (args) ->
-      Game.playerId = args.id
-    chatDisplay: (args) ->
-      GUI.pushMessage(args.text, 'chat')
+  entityCreate: (args) ->
+    Game.entities[args.id] = args.entity
+  
+  entityUpdate: (args) ->
+    entity = Game.entities[args.id]
+    if args.set
+      for key, value of args.set
+        Utils.set(entity, key, value)
+    if args.unset
+      for key, value of args.unset
+        Utils.unset(entity, key, value)
+  
+  entityDelete: (args) ->
+    delete Game.entities[args.id]
+  
+  playerSet: (args) ->
+    Game.playerId = args.id
+  
+  chatDisplay: (args) ->
+    GUI.pushMessage(args.text, 'chat')
 
 
 Request =
@@ -62,7 +67,8 @@ Request =
   push: (command) ->
     @requestStack.push(command)
   
-  ## Requests (client --> server)
+  ### Requests (client --> server) ###
+  
   playerMove: (position) ->
     @push {
       cmd: 'playerMove',

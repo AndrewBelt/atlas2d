@@ -21,7 +21,6 @@ Utils =
       hash[keys[0]] = value
     else
       @set(hash[keys[0]], keys[1], value)
-    console.log(hash, keys, value)
   
   unset: (hash, key) ->
     keys = key.split('.', 2)

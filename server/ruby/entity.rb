@@ -4,15 +4,18 @@ module Entity
     attr_accessor :collection
     
     def create(entity)
-      return @collection.insert(entity)
+      @collection.insert(entity)
     end
     
-    # Set and unset hashes should look like
-    # {'location.position' => [1, 2]}
-    def update(id, set=nil, unset=nil)
+    # Applies a diff to an entity in the database and broadcasts the change to
+    # all subscribers
+    #
+    # Options: set, unset, exclude
+    def update(id, opts={})
+      # Update the 
       update_op = {
-        '$set' => set,
-        '$unset' => unset
+        '$set' => opts[:set],
+        '$unset' => opts[:unset]
       }
       update_op.keep_if {|k, v| v}
       @collection.update({'_id' => id}, update_op)
@@ -21,12 +24,14 @@ module Entity
       command = {
         cmd: 'entityUpdate',
         id: id.to_s,
-        set: set,
-        unset: unset
+        set: opts[:set],
+        unset: opts[:unset]
       }
       command.keep_if {|k, v| v}
       
+      exclude = opts[:exclude]
       Connection.all.each do |conn|
+        next if exclude and conn == exclude
         if conn.subscriptions.include?(id)
           conn.push_command(command)
         end
